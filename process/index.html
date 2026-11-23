@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="How a moving-company landing page was built with one orchestrator and several AI builder agents: every prompt, the moodboard references used, and what was fixed.">
+<title>How we prompted: class 3 homework</title>
+<style>
+@page{size:A4;margin:16mm 15mm 17mm}
+:root{--ink:#14161a;--body:#2b2f36;--mute:#5d646e;--line:#d5d9df;--soft:#f3f4f6;--red:#b3261e;--fb:#fff3d1;--fbline:#d9a400}
+*{box-sizing:border-box}
+html{font-size:9.6pt}
+body{margin:0;background:#fff;color:var(--body);font-family:"Noto Sans","Liberation Sans",Arial,sans-serif;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+main{max-width:180mm;margin:0 auto;padding:0}
+@media screen{body{background:#e9ebee}main{background:#fff;padding:16mm 15mm;margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.12)}}
+h1,h2,h3,h4{color:var(--ink);margin:0;line-height:1.2}
+h1{font-size:30pt;font-weight:700;letter-spacing:-.01em}
+h2{font-size:17pt;font-weight:700;padding-top:6pt;border-top:1.5pt solid var(--ink);margin:0 0 8pt;break-after:avoid}
+h3{font-size:11.5pt;font-weight:700;margin:14pt 0 5pt;break-after:avoid}
+h4{font-size:9.6pt;font-weight:700;margin:0 0 4pt;break-after:avoid}
+p{margin:0 0 7pt}
+ul,ol{margin:0 0 7pt;padding-left:15pt}
+li{margin:0 0 2.5pt}
+b{color:var(--ink)}
+code,.mono{font-family:"JetBrainsMono NF","JetBrainsMono Nerd Font","Liberation Mono",monospace;font-size:.88em}
+section{break-before:page}
+.kick{font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:8pt;letter-spacing:.08em;text-transform:uppercase;color:var(--red);margin:0 0 5pt}
+.lede{font-size:11pt;color:var(--ink);max-width:150mm}
+.note{font-size:8.4pt;color:var(--mute)}
+
+/* cover */
+.cover{break-before:auto;min-height:250mm;display:flex;flex-direction:column}
+.cover .draft{align-self:flex-start;border:1pt solid var(--red);color:var(--red);font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:8pt;letter-spacing:.1em;padding:3pt 7pt;margin-bottom:46mm}
+.cover h1{font-size:40pt;max-width:150mm}
+.cover .sub{font-size:13pt;color:var(--body);margin:10pt 0 0;max-width:140mm}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:22mm;border-top:1.5pt solid var(--ink)}
+.stats div{padding:9pt 10pt 0 0}
+.stats b{display:block;font-size:24pt;line-height:1.1}
+.stats span{font-size:8.6pt;color:var(--mute)}
+.toc{margin-top:auto;border-top:.75pt solid var(--line);padding-top:9pt;font-size:9.4pt;columns:2;column-gap:12mm}
+.toc div{display:flex;gap:8pt;margin-bottom:3pt;break-inside:avoid}
+.toc i{font-style:normal;font-family:"JetBrainsMono NF","Liberation Mono",monospace;color:var(--red);font-size:8.4pt;padding-top:1pt}
+
+/* tables */
+table.t{border-collapse:collapse;width:100%;font-size:8.5pt;margin:0 0 9pt}
+table.t th{text-align:left;font-weight:700;color:var(--ink);border-bottom:1pt solid var(--ink);padding:4pt 6pt 4pt 0;vertical-align:bottom}
+table.t td{border-bottom:.5pt solid var(--line);padding:4pt 6pt 4pt 0;vertical-align:top}
+table.t tr{break-inside:avoid}
+table.t td.n{font-weight:700;color:var(--ink);white-space:nowrap}
+table.t td.ids{font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:7.8pt;color:var(--body);word-spacing:3pt}
+
+/* moodboard */
+.mbsec{margin:0 0 8pt;break-inside:avoid}
+.mbsec h4 span{font-weight:400;color:var(--mute);margin-left:5pt}
+.mbgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4pt}
+.mbgrid figure{margin:0}
+.mbgrid img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border:.5pt solid var(--line)}
+.mbgrid figcaption{font-size:5.8pt;line-height:1.25;color:var(--mute);margin-top:1.5pt;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mbgrid figcaption b{font-family:"JetBrainsMono NF","Liberation Mono",monospace}
+
+/* placeholders */
+.box{border:1pt dashed #8b929c;background:repeating-linear-gradient(135deg,#fafafb 0 8pt,#f1f2f4 8pt 16pt);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:8.4pt;letter-spacing:.04em;padding:10pt;break-inside:avoid}
+.box b{display:block;color:var(--ink);font-size:9.6pt;margin-bottom:3pt}
+
+/* thumbs */
+.thumbs{display:grid;gap:6pt;margin:0 0 9pt}
+.thumbs.c2{grid-template-columns:repeat(2,1fr)}
+.thumbs.c3{grid-template-columns:repeat(3,1fr)}
+.thumbs.c4{grid-template-columns:repeat(4,1fr)}
+.thumbs.c5{grid-template-columns:repeat(5,1fr);align-items:end}
+.thumbs figure{margin:0;break-inside:avoid}
+.thumbs img{display:block;width:100%;border:.5pt solid var(--line)}
+.thumbs figcaption{font-size:7.4pt;color:var(--mute);margin-top:2.5pt;line-height:1.3}
+.thumbs .ph-box div{border:1pt dashed #8b929c;background:repeating-linear-gradient(135deg,#fafafb 0 8pt,#f1f2f4 8pt 16pt);aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;color:var(--mute);font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:8.4pt}
+
+/* prompt blocks */
+.prompt{border:.75pt solid var(--line);border-left:2.5pt solid var(--ink);background:#fbfbfc;padding:8pt 10pt 9pt 11pt;margin:0 0 10pt;font-family:"JetBrainsMono NF","JetBrainsMono Nerd Font","Liberation Mono",monospace;font-size:7.15pt;line-height:1.5;color:#22262c;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.prompt.keep{break-inside:avoid}
+.prompt .plabel{font-family:"Noto Sans","Liberation Sans",Arial,sans-serif;font-size:7.6pt;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-bottom:5pt;break-after:avoid}
+.prompt .ph{font-weight:700;color:var(--ink);break-after:avoid}
+.prompt .ph1{font-size:8.2pt}
+.prompt .ph2{margin-top:1pt}
+.prompt .pl{position:relative;padding-left:11pt}
+.prompt .pl .mk{position:absolute;left:0;color:var(--mute)}
+.prompt .gap{height:4.5pt}
+.prompt .fb{background:var(--fb);box-shadow:-6pt 0 0 var(--fb),6pt 0 0 var(--fb);color:#2a2200}
+.prompt code{font-size:1em;background:#eceef1;padding:0 2pt;border-radius:1.5pt}
+.prompt .fb code{background:#f1e2ad}
+.key{display:flex;gap:14pt;font-size:8pt;color:var(--mute);margin:0 0 8pt;flex-wrap:wrap}
+.key span::before{content:"";display:inline-block;width:9pt;height:9pt;vertical-align:-1.5pt;margin-right:4pt;border:.5pt solid var(--line)}
+.key .k1::before{background:var(--fb);border-color:var(--fbline)}
+.key .k2::before{background:#fbfbfc;border-left:2pt solid var(--ink)}
+
+/* round header */
+.round{break-before:page}
+.rhead{display:grid;grid-template-columns:auto 1fr;gap:12pt;align-items:end;border-top:1.5pt solid var(--ink);padding-top:6pt;margin-bottom:8pt}
+.rhead .no{font-size:34pt;font-weight:700;color:var(--ink);line-height:.95}
+.rhead h3{margin:0;font-size:14pt}
+.rhead p{margin:2pt 0 0;font-size:8.6pt;color:var(--mute)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12pt}
+.card{border:.75pt solid var(--line);padding:8pt 10pt;break-inside:avoid;margin:0 0 9pt}
+.card h4{font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.card ul{margin-bottom:0}
+.card.lesson{border-left:2.5pt solid var(--red)}
+
+/* diagram */
+.diagram{border:.75pt solid var(--line);padding:8pt;margin:0 0 10pt;break-inside:avoid}
+.diagram svg{display:block;width:86%;margin:0 auto;height:auto}
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:5pt;margin:0 0 7pt}.parts span{line-height:1.4;display:block}
+.parts div{border:.75pt solid var(--line);padding:5pt 8pt;break-inside:avoid}
+.parts i{font-style:normal;font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:7.6pt;color:var(--red)}
+.parts b{display:block;margin:1pt 0 2pt}
+.parts span{font-size:8.4pt}
+
+/* anatomy */
+table.an{border-collapse:collapse;width:100%;margin:0 0 9pt}
+table.an tr{break-inside:avoid}
+table.an td{vertical-align:top;border-top:.5pt solid var(--line);padding:6pt 0}
+table.an td.no{width:16pt;font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:7.6pt;color:var(--red);padding-top:7pt}
+table.an td.q{width:52%;padding-right:10pt}
+table.an td.q div{font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:7.15pt;line-height:1.5;background:#fbfbfc;border-left:2.5pt solid var(--ink);padding:5pt 8pt;color:#22262c}
+table.an td.w{font-size:8.7pt}
+table.an td.w b{display:block}
+.end .box{min-height:34mm;margin-bottom:8pt}
+.end .three{display:grid;grid-template-columns:2fr 1.2fr .8fr;gap:8pt}
+.end .three .box{min-height:70mm}
+
+.ask{border-left:2.5pt solid var(--fbline);background:var(--fb);padding:6pt 10pt;margin:0 0 9pt;color:#2a2200;break-inside:avoid}
+.ask b{display:block;font-size:7.6pt;letter-spacing:.06em;text-transform:uppercase;color:#6b5600;margin-bottom:1.5pt}
+.prompt .tg{color:var(--red);font-weight:700;margin-top:1pt;break-after:avoid}
+.parts i{font-size:7.2pt}
+table.t td.ids b.u{color:var(--red)}
+.mbgrid figure.u img{outline:1.5pt solid var(--red);outline-offset:-1.5pt}
+.mbgrid figure.u figcaption b{color:var(--red)}
+table.map{border-collapse:collapse;width:100%;margin:0 0 7pt}
+table.map th{text-align:left;font-size:8pt;color:var(--ink);border-bottom:1pt solid var(--ink);padding:3pt 8pt 3pt 0}
+table.map td{vertical-align:top;border-bottom:.5pt solid var(--line);padding:5pt 8pt 5pt 0}
+table.map tr{break-inside:avoid}
+table.map td.sec{width:15%;font-weight:700;color:var(--ink);font-size:9pt}
+table.map td.keep{width:30%}
+table.map td.keep figure{display:inline-block;width:47%;margin:0 2% 0 0;vertical-align:top}
+table.map td.keep img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border:.5pt solid var(--line)}
+table.map td.keep figcaption{font-size:6.6pt;color:var(--mute);margin-top:1.5pt;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+table.map td.keep figcaption b{font-family:"JetBrainsMono NF","Liberation Mono",monospace;color:var(--red)}
+table.map td.took{font-size:8.8pt}
+table.map td.built{width:27%;padding-right:0}
+table.map td.built img{display:block;width:100%;border:.5pt solid var(--line)}
+table.map .mini{border:1pt dashed #8b929c;background:repeating-linear-gradient(135deg,#fafafb 0 8pt,#f1f2f4 8pt 16pt);aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;color:var(--mute);font-family:"JetBrainsMono NF","Liberation Mono",monospace;font-size:7pt;text-align:center}
+table.map td.keep .mini{width:47%}
+
+/* ================= web page (screen) ================= */
+.topnav,.more,footer.pg{display:none}
+.mbgrid{grid-template-columns:repeat(8,minmax(0,1fr))}
+.mbgrid figure,.thumbs figure,.parts div,.two>div,.stats div{min-width:0}
+@media screen{
+html{font-size:16px;scroll-behavior:smooth;scroll-padding-top:72px}
+body{background:#fbfbfa;line-height:1.6;-webkit-font-smoothing:antialiased}
+main{max-width:1040px;margin:0 auto;padding:0 clamp(20px,5vw,40px) 96px;background:none;box-shadow:none}
+section{margin-top:clamp(72px,10vw,120px)}
+h1{font-size:clamp(40px,8vw,76px)}
+h2{font-size:clamp(25px,3.6vw,34px);padding-top:14px;margin-bottom:16px;border-top-width:2px}
+h3{font-size:19px;margin:32px 0 10px}
+h4{font-size:15px;margin-bottom:6px}
+p{margin-bottom:12px}
+li{margin-bottom:5px}
+ul,ol{padding-left:22px;margin-bottom:12px}
+.kick{font-size:12px;margin-bottom:8px}
+.lede{font-size:clamp(17px,2vw,19px);max-width:68ch}
+.note{font-size:13.5px}
+a{color:var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+img{max-width:100%}
+
+.topnav{display:block;position:sticky;top:0;z-index:10;background:rgba(251,251,250,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topnav div{max-width:1040px;margin:0 auto;padding:0 clamp(20px,5vw,40px);display:flex;gap:4px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.topnav div::-webkit-scrollbar{display:none}
+.topnav b{font-size:14px;white-space:nowrap;margin-right:auto;padding:14px 12px 14px 0}
+.topnav a{font-size:13.5px;color:var(--body);text-decoration:none;white-space:nowrap;padding:14px 10px;min-height:44px;display:flex;align-items:center}
+.topnav a:hover{color:var(--red)}
+
+.cover{min-height:0;margin-top:clamp(40px,8vw,88px);display:block}
+.cover .draft{font-size:11.5px;padding:5px 10px;margin-bottom:clamp(40px,9vw,96px);display:inline-block}
+.cover .sub{font-size:clamp(17px,2.2vw,21px);margin-top:18px;max-width:60ch}
+.stats{margin-top:clamp(40px,7vw,72px);border-top-width:2px}
+.stats div{padding:16px 16px 0 0}
+.stats b{font-size:clamp(34px,5vw,48px)}
+.stats span{font-size:13.5px;display:block;line-height:1.4}
+.toc{margin-top:48px;padding-top:16px;font-size:15.5px;column-gap:48px}
+.toc div{gap:12px;margin-bottom:8px}
+.toc i{font-size:12.5px;padding-top:3px}
+.toc a{color:var(--body);text-decoration:none}
+.toc a:hover{color:var(--red);text-decoration:underline}
+
+table.t{font-size:14px;margin-bottom:16px}
+table.t th,table.t td{padding:8px 12px 8px 0}
+table.t td.ids{font-size:12.5px;word-spacing:5px;line-height:1.9}
+.tscroll{overflow-x:auto;margin-bottom:16px}
+.tscroll table.t{min-width:620px;margin:0}
+.mbsec{margin-bottom:20px}
+.mbgrid{gap:8px}
+.mbgrid figcaption{font-size:10.5px;margin-top:3px}
+.box{font-size:13px;padding:20px;border-width:1.5px}
+.box b{font-size:15px;margin-bottom:5px}
+
+.thumbs{gap:12px;margin-bottom:18px}
+.thumbs figcaption{font-size:12.5px;margin-top:5px}
+.thumbs .ph-box div{font-size:12.5px}
+.thumbs.c5 img{max-height:360px;width:auto;max-width:100%}
+
+.ask{padding:12px 16px;margin-bottom:16px;border-left-width:4px;font-size:16px}
+.ask b{font-size:11.5px;margin-bottom:3px}
+.prompt{font-size:13px;line-height:1.6;padding:16px 18px 18px 20px;margin-bottom:8px;border-left-width:4px;border-radius:0 6px 6px 0;position:relative;overflow-wrap:anywhere}
+.prompt .plabel{font-size:11.5px;margin-bottom:10px}
+.prompt .ph1{font-size:15px}
+.prompt .gap{height:9px}
+.prompt .pl{padding-left:20px}
+.prompt.clip{max-height:340px;overflow:hidden}
+.prompt.clip::after{content:"";position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(rgba(251,251,252,0),#fbfbfc 85%);pointer-events:none}
+.more{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;margin:0 0 20px;border:1px solid var(--ink);background:#fff;color:var(--ink);font:600 13.5px "Noto Sans","Liberation Sans",Arial,sans-serif;cursor:pointer;border-radius:4px}
+.more:hover{background:var(--ink);color:#fff}
+
+.round{margin-top:clamp(72px,10vw,120px)}
+.rhead{gap:18px;padding-top:12px;margin-bottom:16px;border-top-width:2px}
+.rhead .no{font-size:clamp(44px,7vw,64px)}
+.rhead h3{font-size:clamp(21px,3vw,26px)}
+.rhead p{font-size:13.5px;margin-top:4px}
+.two{gap:16px}
+.card{padding:16px 18px;margin-bottom:16px;border-radius:4px}
+.card h4{font-size:12px}
+.card.lesson{border-left-width:4px}
+
+.diagram{padding:16px;overflow-x:auto;margin-bottom:20px}
+.diagram svg{width:100%;min-width:640px}
+.parts{gap:12px;margin-bottom:20px}
+.parts div{padding:14px 16px;border-radius:4px}
+.parts i{font-size:12px}
+.parts b{margin:3px 0 4px}
+.parts span{font-size:14px;line-height:1.5}
+
+table.map{margin-bottom:12px}
+table.map th{font-size:12.5px;padding:8px 12px 8px 0}
+table.map td{padding:14px 14px 14px 0}
+table.map td.sec{font-size:15.5px}
+table.map td.took{font-size:15px}
+table.map td.keep figcaption{font-size:11px;margin-top:3px}
+table.map .mini{font-size:11px}
+
+table.an td{padding:14px 0}
+table.an td.no{width:28px;font-size:12.5px;padding-top:16px}
+table.an td.q{padding-right:20px}
+table.an td.q div{font-size:12.5px;line-height:1.6;padding:10px 14px;border-left-width:4px;overflow-wrap:anywhere}
+table.an td.w{font-size:15px}
+.end .box{min-height:120px}
+.end .three .box{min-height:220px}
+footer.pg{display:block;margin-top:96px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+}
+@media screen and (max-width:820px){
+.parts{grid-template-columns:repeat(2,1fr)}
+.thumbs.c4{grid-template-columns:repeat(2,1fr)}
+.thumbs.c5{grid-template-columns:repeat(3,1fr)}
+.mbgrid{grid-template-columns:repeat(6,minmax(0,1fr))}
+.stats{grid-template-columns:repeat(2,1fr)}
+.stats div{padding-bottom:8px}
+table.an,table.an tbody,table.an tr,table.an td{display:block;width:auto}
+table.an tr{border-top:1px solid var(--line);padding:16px 0}
+table.an td{border:0;padding:0}
+table.an td.no{padding:0 0 6px;width:auto}
+table.an td.q{width:auto;padding:0 0 10px}
+}
+@media screen and (max-width:600px){
+.toc{columns:1}
+.two,.parts{grid-template-columns:1fr}
+.thumbs.c3,.thumbs.c2{grid-template-columns:1fr}
+.thumbs.c5{grid-template-columns:repeat(2,1fr)}
+.mbgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.end .three{grid-template-columns:1fr}
+.end .three .box{min-height:140px}
+.rhead{grid-template-columns:1fr;gap:4px}
+.prompt{font-size:12.5px;padding:14px 14px 16px 16px}
+table.map,table.map tbody{display:block}
+table.map tr:first-child{display:none}
+table.map tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;padding:18px 0;border-bottom:1px solid var(--line)}
+table.map td{display:block;border:0;padding:0;width:auto!important}
+table.map td.sec,table.map td.took{grid-column:1/-1}
+table.map td.sec{font-size:17px}
+table.map td.keep figure{width:100%;margin:0 0 6px}
+table.map td.keep .mini{width:100%}
+}
+@media print{.topnav,.more,footer.pg{display:none!important}.prompt.clip{max-height:none!important;overflow:visible!important}.tscroll{overflow:visible}}
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="Sections"><div><b>How we prompted</b><a href="#brief">Moodboard</a><a href="#map">References used</a><a href="#workflow">Workflow</a><a href="#rounds">Rounds</a><a href="#anatomy">Anatomy</a><a href="#live">Live page</a></div></nav>
+<main>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="draft">DRAFT 2 · 23 NOV 2026</div>
+  <p class="kick">Class 3 homework · interactive landing page</p>
+  <h1>How we prompted</h1>
+  <p class="sub">Every prompt, in order: what the feedback asked for, the prompt we gave the agents, the moodboard references behind it, what came back, and what we fixed. Niche: a moving company.</p>
+  <div class="stats">
+    <div><b>7</b><span>rounds, 23 Nov 01:20 to 19:05</span></div>
+    <div><b>9</b><span>structured prompts, shown here in full</span></div>
+    <div><b>4</b><span>builder agents at most, working in parallel</span></div>
+    <div><b>18</b><span>finished page versions; one chosen and polished</span></div>
+  </div>
+  <div class="toc">
+    <div><i>01</i><span><a href="#brief">The brief, the niche and the moodboard</a></span></div>
+    <div><i>02</i><span><a href="#map">Moodboard to website: which reference went where</a></span></div>
+    <div><i>03</i><span><a href="#workflow">The workflow: one orchestrator, several builders</a></span></div>
+    <div><i>04</i><span><a href="#rounds">Round by round, prompts 1 to 7</a></span></div>
+    <div><i>05</i><span><a href="#anatomy">Anatomy of a good prompt</a></span></div>
+    <div><i>06</i><span><a href="#live">Live page and final screenshots (to add)</a></span></div>
+  </div>
+</section>
+
+<!-- ============ 1 BRIEF + MOODBOARD ============ -->
+<section id="brief">
+  <p class="kick">01</p>
+  <h2>The brief, the niche and the moodboard</h2>
+  <p class="lede">The homework: build an interactive landing page with AI for a niche of our choice, use two or three pieces from the class component galleries, give it an interactive background, and polish it on phone, tablet and desktop. Our niche is a <b>moving company</b>. Our angle is a discreet night relocation service: a premium mover whose page has a quiet second meaning. The page implies and never states.</p>
+
+  <h3>The moodboard: <span style="font-weight:400">68 kept references in 7 sections</span></h3>
+  <p>Every reference has an id (a section letter and a number), an image and a source link. The ids are what make the prompts specific: a prompt does not say "make a nice pricing section", it says "pricing from P08". Each built page carries a references layer that shows which id each section came from.</p>
+  <table class="t">
+    <tr><th style="width:23%">Section</th><th style="width:9%">Kept</th><th>Ids <span style="font-weight:400;color:var(--mute)">(red = used on the final page)</span></th></tr>
+    <tr><td>01 Navbar</td><td class="n">13</td><td class="ids">N01 N04 N05 N06 N07 N09 N16 N17 N18 N30 <b class="u">N31</b> N32 N36</td></tr>
+<tr><td>02 Hero</td><td class="n">16</td><td class="ids">H01 <b class="u">H02</b> H03 H04 H05 H06 H07 H08 H09 H10 H11 H12 H13 H14 H15 H16</td></tr>
+<tr><td>03 Services</td><td class="n">5</td><td class="ids"><b class="u">S02</b> <b class="u">S05</b> <b class="u">S06</b> S21 <b class="u">S23</b></td></tr>
+<tr><td>04 Pricing</td><td class="n">9</td><td class="ids">P01 P02 P03 P06 P07 <b class="u">P08</b> P13 P14 <b class="u">P29</b></td></tr>
+<tr><td>05 Testimonials</td><td class="n">9</td><td class="ids">T01 T02 T04 <b class="u">T07</b> T10 T11 T13 T19 T20</td></tr>
+<tr><td>06 CTA</td><td class="n">4</td><td class="ids">C01 <b class="u">C02</b> C03 C10</td></tr>
+<tr><td>07 Footer</td><td class="n">12</td><td class="ids">F01 F02 F03 F04 F05 <b class="u">F06</b> F10 F11 F12 F13 F14 F15</td></tr>
+  </table>
+  <p class="note">Navbar: 9 kept in the first pass, plus N30, N31, N32 and N36 added later and used in the builds.</p>
+
+  <div class="box" style="min-height:46mm;margin:6pt 0 10pt"><div><b>moodboard screenshot</b>Figma board, all seven sections, with the source links under each reference</div></div>
+
+  <h3>The kept references, by section <span style="font-weight:400;color:var(--mute);font-size:8.6pt">red frame = used on the final page</span></h3>
+  <div class="mbsec"><h4>01 Navbar <span>13 kept</span></h4><div class="mbgrid"><figure><img src="img/mb-N01.jpg" alt=""><figcaption><b>N01</b> dribbble.com</figcaption></figure><figure><img src="img/mb-N04.jpg" alt=""><figcaption><b>N04</b> dribbble.com</figcaption></figure><figure><img src="img/mb-N05.jpg" alt=""><figcaption><b>N05</b> dribbble.com</figcaption></figure><figure><img src="img/mb-N06.jpg" alt=""><figcaption><b>N06</b> dribbble.com</figcaption></figure><figure><img src="img/mb-N07.jpg" alt=""><figcaption><b>N07</b> dribbble.com</figcaption></figure><figure><img src="img/mb-N09.jpg" alt=""><figcaption><b>N09</b> dribbble.com</figcaption></figure><figure><img src="img/mb-N16.jpg" alt=""><figcaption><b>N16</b> framer.com</figcaption></figure><figure><img src="img/mb-N17.jpg" alt=""><figcaption><b>N17</b> linear.app</figcaption></figure><figure><img src="img/mb-N18.jpg" alt=""><figcaption><b>N18</b> stripe.com</figcaption></figure><figure><img src="img/mb-N30.jpg" alt=""><figcaption><b>N30</b> manna.aero</figcaption></figure><figure class="u"><img src="img/mb-N31.jpg" alt=""><figcaption><b>N31</b> skylan.it</figcaption></figure><figure><img src="img/mb-N32.jpg" alt=""><figcaption><b>N32</b> moving-jack.com</figcaption></figure><figure><img src="img/mb-N36.jpg" alt=""><figcaption><b>N36</b> flexport.com</figcaption></figure></div></div>
+<div class="mbsec"><h4>02 Hero <span>16 kept</span></h4><div class="mbgrid"><figure><img src="img/mb-H01.jpg" alt=""><figcaption><b>H01</b> flexport.com</figcaption></figure><figure class="u"><img src="img/mb-H02.jpg" alt=""><figcaption><b>H02</b> manuport-logistics.com</figcaption></figure><figure><img src="img/mb-H03.jpg" alt=""><figcaption><b>H03</b> adenlogistics.com</figcaption></figure><figure><img src="img/mb-H04.jpg" alt=""><figcaption><b>H04</b> thesmartmove.se</figcaption></figure><figure><img src="img/mb-H05.jpg" alt=""><figcaption><b>H05</b> manna.aero</figcaption></figure><figure><img src="img/mb-H06.jpg" alt=""><figcaption><b>H06</b> new.starkshipping.net</figcaption></figure><figure><img src="img/mb-H07.jpg" alt=""><figcaption><b>H07</b> vitessetransport.com</figcaption></figure><figure><img src="img/mb-H08.jpg" alt=""><figcaption><b>H08</b> skylan.it</figcaption></figure><figure><img src="img/mb-H09.jpg" alt=""><figcaption><b>H09</b> holtlogistics.com</figcaption></figure><figure><img src="img/mb-H10.jpg" alt=""><figcaption><b>H10</b> dribbble.com</figcaption></figure><figure><img src="img/mb-H11.jpg" alt=""><figcaption><b>H11</b> dribbble.com</figcaption></figure><figure><img src="img/mb-H12.jpg" alt=""><figcaption><b>H12</b> dribbble.com</figcaption></figure><figure><img src="img/mb-H13.jpg" alt=""><figcaption><b>H13</b> dribbble.com</figcaption></figure><figure><img src="img/mb-H14.jpg" alt=""><figcaption><b>H14</b> dribbble.com</figcaption></figure><figure><img src="img/mb-H15.jpg" alt=""><figcaption><b>H15</b> dribbble.com</figcaption></figure><figure><img src="img/mb-H16.jpg" alt=""><figcaption><b>H16</b> dribbble.com</figcaption></figure></div></div>
+<div class="mbsec"><h4>03 Services <span>5 kept</span></h4><div class="mbgrid"><figure class="u"><img src="img/mb-S02.jpg" alt=""><figcaption><b>S02</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-S05.jpg" alt=""><figcaption><b>S05</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-S06.jpg" alt=""><figcaption><b>S06</b> dribbble.com</figcaption></figure><figure><img src="img/mb-S21.jpg" alt=""><figcaption><b>S21</b> pnzfas.com</figcaption></figure><figure class="u"><img src="img/mb-S23.jpg" alt=""><figcaption><b>S23</b> cal.com</figcaption></figure></div></div>
+<div class="mbsec"><h4>04 Pricing <span>9 kept</span></h4><div class="mbgrid"><figure><img src="img/mb-P01.jpg" alt=""><figcaption><b>P01</b> dribbble.com</figcaption></figure><figure><img src="img/mb-P02.jpg" alt=""><figcaption><b>P02</b> dribbble.com</figcaption></figure><figure><img src="img/mb-P03.jpg" alt=""><figcaption><b>P03</b> dribbble.com</figcaption></figure><figure><img src="img/mb-P06.jpg" alt=""><figcaption><b>P06</b> dribbble.com</figcaption></figure><figure><img src="img/mb-P07.jpg" alt=""><figcaption><b>P07</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-P08.jpg" alt=""><figcaption><b>P08</b> dribbble.com</figcaption></figure><figure><img src="img/mb-P13.jpg" alt=""><figcaption><b>P13</b> dribbble.com</figcaption></figure><figure><img src="img/mb-P14.jpg" alt=""><figcaption><b>P14</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-P29.jpg" alt=""><figcaption><b>P29</b> linear.app</figcaption></figure></div></div>
+<div class="mbsec"><h4>05 Testimonials <span>9 kept</span></h4><div class="mbgrid"><figure><img src="img/mb-T01.jpg" alt=""><figcaption><b>T01</b> dribbble.com</figcaption></figure><figure><img src="img/mb-T02.jpg" alt=""><figcaption><b>T02</b> dribbble.com</figcaption></figure><figure><img src="img/mb-T04.jpg" alt=""><figcaption><b>T04</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-T07.jpg" alt=""><figcaption><b>T07</b> dribbble.com</figcaption></figure><figure><img src="img/mb-T10.jpg" alt=""><figcaption><b>T10</b> dribbble.com</figcaption></figure><figure><img src="img/mb-T11.jpg" alt=""><figcaption><b>T11</b> dribbble.com</figcaption></figure><figure><img src="img/mb-T13.jpg" alt=""><figcaption><b>T13</b> dribbble.com</figcaption></figure><figure><img src="img/mb-T19.jpg" alt=""><figcaption><b>T19</b> cal.com</figcaption></figure><figure><img src="img/mb-T20.jpg" alt=""><figcaption><b>T20</b> framer.com</figcaption></figure></div></div>
+<div class="mbsec"><h4>06 CTA <span>4 kept</span></h4><div class="mbgrid"><figure><img src="img/mb-C01.jpg" alt=""><figcaption><b>C01</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-C02.jpg" alt=""><figcaption><b>C02</b> dribbble.com</figcaption></figure><figure><img src="img/mb-C03.jpg" alt=""><figcaption><b>C03</b> dribbble.com</figcaption></figure><figure><img src="img/mb-C10.jpg" alt=""><figcaption><b>C10</b> dribbble.com</figcaption></figure></div></div>
+<div class="mbsec"><h4>07 Footer <span>12 kept</span></h4><div class="mbgrid"><figure><img src="img/mb-F01.jpg" alt=""><figcaption><b>F01</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F02.jpg" alt=""><figcaption><b>F02</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F03.jpg" alt=""><figcaption><b>F03</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F04.jpg" alt=""><figcaption><b>F04</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F05.jpg" alt=""><figcaption><b>F05</b> dribbble.com</figcaption></figure><figure class="u"><img src="img/mb-F06.jpg" alt=""><figcaption><b>F06</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F10.jpg" alt=""><figcaption><b>F10</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F11.jpg" alt=""><figcaption><b>F11</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F12.jpg" alt=""><figcaption><b>F12</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F13.jpg" alt=""><figcaption><b>F13</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F14.jpg" alt=""><figcaption><b>F14</b> dribbble.com</figcaption></figure><figure><img src="img/mb-F15.jpg" alt=""><figcaption><b>F15</b> dribbble.com</figcaption></figure></div></div>
+</section>
+
+<!-- ============ 2 MOODBOARD TO WEBSITE ============ -->
+<section id="map">
+  <p class="kick">02</p>
+  <h2>Moodboard to website: which reference went where</h2>
+  <p class="lede">The final page is <b>V16 "Lethe: Evaporation"</b>. Every section of it starts from a moodboard keep. Left: the keep. Middle: what we took from it. Right: the section as built.</p>
+  <table class="map">
+    <tr><th>Section</th><th>Moodboard keep</th><th>What we took from it</th><th>On the page</th></tr>
+    <tr><td class="sec">Nav</td><td class="keep"><figure><img src="img/mb-N31.jpg" alt=""><figcaption><b>N31</b> skylan.it</figcaption></figure></td><td class="took">Dark floating pill, always centred, one solid CTA</td><td class="built"><img src="img/map-nav.jpg" alt=""></td></tr>
+<tr><td class="sec">Hero</td><td class="keep"><figure><img src="img/mb-H02.jpg" alt=""><figcaption><b>H02</b> manuport-logistics.com</figcaption></figure></td><td class="took">Full-bleed scene behind very large type, three figures under it</td><td class="built"><img src="img/map-hero.jpg" alt=""></td></tr>
+<tr><td class="sec">Premise</td><td class="keep"><figure><img src="img/mb-H02.jpg" alt=""><figcaption><b>H02</b> manuport-logistics.com</figcaption></figure></td><td class="took">One large line, three short facts under a rule</td><td class="built"><img src="img/map-premise.jpg" alt=""></td></tr>
+<tr><td class="sec">Three services</td><td class="keep"><figure><img src="img/mb-S05.jpg" alt=""><figcaption><b>S05</b> Movara (Dribbble)</figcaption></figure></td><td class="took">Row of cards; on tablet and phone the active one expands</td><td class="built"><img src="img/map-three-services.jpg" alt=""></td></tr>
+<tr><td class="sec">The evening</td><td class="keep"><figure><img src="img/mb-S02.jpg" alt=""><figcaption><b>S02</b> Logistics-Lion (Dribbble)</figcaption></figure></td><td class="took">Dark logistics panel, flattened to four marks on one line</td><td class="built"><img src="img/map-the-evening.jpg" alt=""></td></tr>
+<tr><td class="sec">Fees</td><td class="keep"><figure><img src="img/mb-S02.jpg" alt=""><figcaption><b>S02</b> Logistics-Lion (Dribbble)</figcaption></figure><figure><img src="img/mb-P08.jpg" alt=""><figcaption><b>P08</b> Landing Play (Dribbble)</figcaption></figure></td><td class="took">The V12 panels: head row, small line over a large title, dash list, price row</td><td class="built"><img src="img/map-fees.jpg" alt=""></td></tr>
+<tr><td class="sec">Kind words</td><td class="keep"><figure><img src="img/mb-T07.jpg" alt=""><figcaption><b>T07</b> Testimonial Website Sectio (Dribbble)</figcaption></figure></td><td class="took">The V12 portrait cards with covered eyes, rewritten</td><td class="built"><img src="img/map-kind-words.jpg" alt=""></td></tr>
+<tr><td class="sec">How it works</td><td class="keep"><figure><img src="img/mb-S06.jpg" alt=""><figcaption><b>S06</b> Logistics Service Website  (Dribbble)</figcaption></figure></td><td class="took">Numbered process row, four steps</td><td class="built"><img src="img/map-how-it-works.jpg" alt=""></td></tr>
+<tr><td class="sec">What we handle</td><td class="keep"><figure><img src="img/mb-S23.jpg" alt=""><figcaption><b>S23</b> cal.com</figcaption></figure></td><td class="took">Four equal feature cards, label over title over one line</td><td class="built"><img src="img/map-what-we-handle.jpg" alt=""></td></tr>
+<tr><td class="sec">Questions</td><td class="keep"><figure><img src="img/mb-P29.jpg" alt=""><figcaption><b>P29</b> linear.app</figcaption></figure></td><td class="took">Two-column question list under a rule. The moodboard has no FAQ category; this is the closest kept reference</td><td class="built"><img src="img/map-questions.jpg" alt=""></td></tr>
+<tr><td class="sec">Consultation</td><td class="keep"><figure><img src="img/mb-C02.jpg" alt=""><figcaption><b>C02</b> The Funded Bettor (Dribbble)</figcaption></figure></td><td class="took">Centred call to action, copy over the form</td><td class="built"><img src="img/map-consultation.jpg" alt=""></td></tr>
+<tr><td class="sec">Footer</td><td class="keep"><figure><img src="img/mb-F06.jpg" alt=""><figcaption><b>F06</b> Footer Design (Dribbble)</figcaption></figure></td><td class="took">Dark footer line, outline wordmark (phone), plain-language terms</td><td class="built"><img src="img/map-footer.jpg" alt=""></td></tr>
+  </table>
+  <p class="note">All sections of the final page are listed, including the four added in round 7. On the page itself, the R key or the Refs switch in the nav shows these ids over each section.</p>
+  <div class="card"><h4>Class gallery pieces on the final page</h4>
+    <ul style="margin-top:4pt">
+      <li><b>GSAP Observer, full-page sections:</b> the section snap. One scroll step moves exactly one section.</li>
+      <li><b>Cult UI, expandable cards:</b> the three services and the questions on tablet and phone.</li>
+      <li><b>Magic UI, blur-fade:</b> each section's content arrives from blur when the section becomes active.</li>
+      <li><b>Interactive background:</b> the 3D night scene, which advances one beat per section and tilts slightly with the pointer.</li>
+    </ul>
+    <p class="note" style="margin:4pt 0 0">The gallery pieces are rebuilt from their behaviour in plain HTML, CSS and JavaScript, as the class allowed ("copy the code or describe the piece to the AI").</p></div>
+</section>
+
+<!-- ============ 3 WORKFLOW ============ -->
+<section id="workflow">
+  <p class="kick">03</p>
+  <h2>The workflow: one orchestrator, several builders</h2>
+  <p class="lede">We do not type "make me a landing page". One session, the orchestrator (a Claude session), turns spoken feedback into a structured prompt file. Builder agents read that file and build in parallel. The orchestrator reviews their screenshots and sends fixes. Then the client looks, gives the next feedback, and the loop runs again.</p>
+
+  <div class="diagram">
+  <svg viewBox="0 14 1000 412" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans, Liberation Sans, Arial, sans-serif">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#14161a"/></marker>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b3261e"/></marker>
+    </defs>
+    <!-- client -->
+    <rect x="10" y="150" width="150" height="110" fill="#fff" stroke="#14161a" stroke-width="1.5"/>
+    <text x="85" y="185" text-anchor="middle" font-size="17" font-weight="700" fill="#14161a">Client</text>
+    <text x="85" y="208" text-anchor="middle" font-size="12.5" fill="#5d646e">looks at the pages,</text>
+    <text x="85" y="225" text-anchor="middle" font-size="12.5" fill="#5d646e">gives the feedback</text>
+    <!-- orchestrator -->
+    <rect x="222" y="120" width="246" height="170" fill="#14161a"/>
+    <text x="345" y="152" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Orchestrator</text>
+    <text x="345" y="171" text-anchor="middle" font-size="12.5" fill="#c9ced6">(a Claude session)</text>
+    <text x="345" y="202" text-anchor="middle" font-size="12.5" fill="#fff">1. sums up the spoken feedback</text>
+    <text x="345" y="221" text-anchor="middle" font-size="12.5" fill="#fff">2. sharpens it into one prompt file</text>
+    <text x="345" y="240" text-anchor="middle" font-size="12.5" fill="#fff">3. waits for each done line</text>
+    <text x="345" y="259" text-anchor="middle" font-size="12.5" fill="#fff">4. reviews screenshots, sends fixes</text>
+    <!-- prompt file -->
+    <rect x="525" y="150" width="150" height="110" fill="#fff3d1" stroke="#d9a400" stroke-width="1.5"/>
+    <text x="600" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#14161a">Prompt file</text>
+    <text x="600" y="196" text-anchor="middle" font-size="11.5" fill="#2b2f36">context · task · references</text>
+    <text x="600" y="212" text-anchor="middle" font-size="11.5" fill="#2b2f36">requirements · decisions</text>
+    <text x="600" y="228" text-anchor="middle" font-size="11.5" fill="#2b2f36">verification · output</text>
+    <text x="600" y="248" text-anchor="middle" font-size="10.5" fill="#5d646e">one file, read by every agent</text>
+    <!-- agents -->
+    <g font-size="13.5">
+      <rect x="760" y="22" width="230" height="64" fill="#fff" stroke="#14161a" stroke-width="1.5"/>
+      <text x="775" y="48" font-weight="700" fill="#14161a">Agent 1 (Claude)</text><text x="775" y="68" font-size="11.5" fill="#5d646e">builds one version, checks it headless</text>
+      <rect x="760" y="100" width="230" height="64" fill="#fff" stroke="#14161a" stroke-width="1.5"/>
+      <text x="775" y="126" font-weight="700" fill="#14161a">Agent 2 (Claude)</text><text x="775" y="146" font-size="11.5" fill="#5d646e">builds one version, checks it headless</text>
+      <rect x="760" y="178" width="230" height="64" fill="#fff" stroke="#14161a" stroke-width="1.5"/>
+      <text x="775" y="204" font-weight="700" fill="#14161a">Agent 3 (Claude)</text><text x="775" y="224" font-size="11.5" fill="#5d646e">builds one version, checks it headless</text>
+      <rect x="760" y="256" width="230" height="64" fill="#fff" stroke="#14161a" stroke-width="1.5"/>
+      <text x="775" y="282" font-weight="700" fill="#14161a">Agent 4 (Claude)</text><text x="775" y="302" font-size="11.5" fill="#5d646e">builds one version, checks it headless</text>
+      <rect x="760" y="334" width="230" height="64" fill="#fff" stroke="#14161a" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="775" y="360" font-weight="700" fill="#14161a">Codex agent (rounds 2 and 3)</text><text x="775" y="380" font-size="11.5" fill="#5d646e">second opinion, then three builds</text>
+    </g>
+    <!-- arrows forward -->
+    <line x1="160" y1="190" x2="219" y2="190" stroke="#14161a" stroke-width="1.5" marker-end="url(#ar)"/>
+    <text x="191" y="181" text-anchor="middle" font-size="11" fill="#5d646e">voice note</text>
+    <line x1="468" y1="190" x2="522" y2="190" stroke="#14161a" stroke-width="1.5" marker-end="url(#ar)"/>
+    <text x="495" y="181" text-anchor="middle" font-size="11" fill="#5d646e">writes</text>
+    <path d="M675 205H715V54H757" fill="none" stroke="#14161a" stroke-width="1.5" marker-end="url(#ar)"/>
+    <path d="M715 132H757" fill="none" stroke="#14161a" stroke-width="1.5" marker-end="url(#ar)"/>
+    <path d="M715 205V210H757" fill="none" stroke="#14161a" stroke-width="1.5" marker-end="url(#ar)"/>
+    <path d="M715 205V288H757" fill="none" stroke="#14161a" stroke-width="1.5" marker-end="url(#ar)"/>
+    <path d="M715 288V366H757" fill="none" stroke="#14161a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ar)"/>
+    <!-- return -->
+    <path d="M875 400V418H345V293" fill="none" stroke="#b3261e" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="608" y="411" text-anchor="middle" font-size="11.5" fill="#b3261e">done line + screenshots at three widths + preview video</text>
+    <path d="M345 118V70H85V147" fill="none" stroke="#b3261e" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="213" y="61" text-anchor="middle" font-size="11.5" fill="#b3261e">overview page: one card per version</text>
+  </svg>
+  </div>
+
+  <h3>What every prompt contains</h3>
+  <div class="parts">
+    <div><i>&lt;context&gt;</i><b>What happened and why</b><span>What the client asked for, in plain words, and the facts the agent cannot see. An agent that knows the reason makes better small decisions.</span></div>
+    <div><i>&lt;task&gt;</i><b>The outcome, in a sentence or two</b><span>An action verb, the number of versions, and one named owner per version.</span></div>
+    <div><i>&lt;references&gt;</i><b>What to build from</b><span>Moodboard keep ids for each section, and earlier pages to take tone, palette or structure from.</span></div>
+    <div><i>&lt;requirements&gt;</i><b>Numbered, checkable</b><span>Each one is something a screenshot or a test can confirm: a size, a width, a behaviour.</span></div>
+    <div><i>&lt;decisions&gt;</i><b>Who decides what</b><span>Already decided by the client; the agent's call, with a default; and what to ask before doing.</span></div>
+    <div><i>&lt;verification&gt; &lt;output&gt;</i><b>Proof, files, a done line</b><span>The tests to run, the exact files to hand back, and one exact line to print at the end.</span></div>
+  </div>
+
+  <div class="two">
+    <div class="card"><h4>How this maps to the class rule</h4>
+      <p style="margin:4pt 0 0">Class rule: a prompt is role + context + constraints + output format, each section gets its own spec, and mobile gets separate rules.</p>
+      <ul style="margin-top:4pt">
+        <li><b>Role:</b> the task names each agent and its version.</li>
+        <li><b>Context:</b> the context and the references.</li>
+        <li><b>Constraints:</b> requirements and decisions.</li>
+        <li><b>Output format:</b> verification and output.</li>
+      </ul></div>
+    <div class="card"><h4>Working rules between agents</h4>
+      <ul style="margin-top:4pt">
+        <li>Content goes into files. A message between agents only says "your turn: read this file".</li>
+        <li>One version per agent, in its own folder. No agent edits another agent's version.</li>
+        <li>Screenshots and video are made without a visible browser, one render at a time.</li>
+        <li>Each agent looks at its own screenshots at three widths before it prints the done line.</li>
+      </ul></div>
+  </div>
+  <p class="note">How the prompts are shown in this document: the client gives feedback by voice. Here it is summarised in one line, and each prompt is written in one standard structure (the six parts above) with internal names removed. The requirements are the ones the agents were given.</p>
+</section>
+
+<!-- ============ 4 ROUNDS ============ -->
+<section class="round" id="rounds">
+  <p class="kick">04 · Round by round</p>
+  <div class="rhead"><div class="no">1</div><div><h3>Four versions to pick from</h3><p>23 Nov 01:20 · one builder agent · versions A, B, C, D</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>Take the best parts of what we have made, show a few versions to choose from, keep the theme eerie without saying anything outright, and tie every choice to the moodboard.</p>
+  <div class="prompt"><div class="plabel">Prompt 1 · 23 Nov 01:20 · to agent 1</div>
+<div class="ph ph1">Round 1: four landing-page versions to choose from</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">This is the class 3 homework: an interactive landing page built with AI, using two or three pieces from the class component galleries, with an interactive background, polished on phone, tablet and desktop. The niche is a moving company. The angle is a mover whose page has a calm, eerie second meaning. The class marks the iteration trail, so every prompt, reference, flaw and fix has to be logged. The client wants several versions side by side before choosing a direction.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Build four complete one-page landing pages (A, B, C, D), each in a different design direction, and one overview page that shows them side by side.</div>
+<div class="gap"></div>
+<div class="tg">&lt;learn_first&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Re-read the homework brief, the plan and the notes, and list the class rules: squint test for hierarchy, proximity, one headline size, the same CTA everywhere, 8 pt grid, mobile photo on top, full-width buttons.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Re-read the moodboard keeps per section (Navbar 13, Hero 16, Services 5, Pricing 9, Testimonials 9, CTA 4, Footer 12) and the candidates list for their ids, sources and links.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Look at the class galleries (Magic UI, Uiverse, Animate UI, Watermelon UI, Cult UI, Skiper UI, Vengeance UI) and pick two or three real pieces per version that fit an eerie tone.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Find three to five real eerie or uncanny brand sites and note what makes them eerie without saying anything outright: restraint, what is left unsaid, empty space, slow motion, odd details.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Tone: eerie and calm, implied, never stated. The eeriness comes from what is missing, from lines with two meanings ("we move anything", "no questions") and from quiet night imagery behind a Day/Night switch. Keep every line free of crime, violence or anything illegal, because the page must read as a real mover.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Each version is a full page in this order: Nav, Hero, Services, Pricing, Testimonials, CTA, Footer. Write real headlines and lines for every section; the copy matters most.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Every section names the moodboard keep it is built from, as a small caption on the page and in a SOURCES file per version, for example "Hero layout from H07, nav from N31, pricing card from P06". This is how we show which reference each part came from.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Each version has an interactive background that makes the page feel alive without animation for its own sake.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">5.</span>The overview page shows, per version: a thumbnail, a three-line pitch, the gallery pieces used and a link to open it.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">6.</span>Keep a prompt log: every prompt, the references given, each flaw found and its fix.</div>
+<div class="gap"></div>
+<div class="tg">&lt;decisions&gt;</div>
+<div class="pp">Already decided: the niche, the implied tone, the section order, and that layout references come only from the moodboard.</div>
+<div class="pp">Your call: the four directions (default: A calm corporate that turns uncanny at night, B cinematic dark, C minimal editorial, D playful-sinister) and a placeholder company name.</div>
+<div class="pp">Ask me before: posting, deploying or sending anything outside this laptop.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pp">Screenshot every version at 390, 768 and 1440 px in both Day and Night, and fix the flaws before showing anything. Confirm there is no sideways scroll, and that on mobile the visual is on top, buttons are full width and the pushed plan comes first.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">Four version folders, the overview page, the prompt log, and one progress line as you go. Build and screenshot without opening a visible browser window, because the client is working on the same laptop. When finished print exactly: DONE versions &lt;path to the overview page&gt; &lt;one line&gt;.</div>
+</div>
+  <h3>The references we gave</h3>
+  <p>The agent logged the build prompt for each version. Every section names the moodboard id it is built from, and each version names its gallery pieces.</p>
+  <div class="prompt"><div class="plabel">The build prompts agent 1 logged for the four versions (references named per section)</div>
+<div class="ph ph2">2. Build prompt (one per version; the shared part first)</div>
+<div class="pp"><b>Shared:</b></div>
+<div class="pp">You are a senior web designer. Build a one-page landing page for "Quietly &amp; Co.", a moving company (placeholder name).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Sections in this order: Nav, Hero, Services, Pricing, Testimonials, CTA, Footer.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Day mode is a warm, trustworthy mover. A Day/Night toggle swaps headlines and small lines into a calm, eerie double meaning ("Nobody will know", "We don't ask what's in the boxes", "No forwarding address"). Never mention crime, bodies, illegal acts or violence.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Rules: one CTA label everywhere ("Get a quote"). The subheadline is subtler than the headline. Headline and subheadline sit close; the button sits further away. 8 pt spacing.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Mobile: the visual goes on top, buttons are full width, and the pushed plan comes first.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Motion: 0.4-0.8 s with custom easing, reveal once, slow ambient motion, and everything off under reduced motion.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Show each section's moodboard source as a small mono caption.</div>
+<div class="gap"></div>
+<div class="pp"><b>A (calm corporate, uncanny at night):</b></div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Nav from N36 (Flexport: utility bar + main bar). Hero from H05 (Manna: huge serif over sky). Services from S23 (cal.com bento). Pricing from P29 (Linear plan columns). Testimonials from T04 ("/recent clients" grid). CTA from C01 (split image card). Footer from F10 (giant faded wordmark).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Gallery: Magic UI interactive-grid-pattern as the hero background (at night the trail lingers), animated-theme-toggler for the circular Day/Night reveal, and number-ticker for the stats.</div>
+<div class="gap"></div>
+<div class="pp"><b>B (cinematic dark):</b></div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Nav from N31 (Skylan dark pill + coloured CTA). Hero from H07 (Vitesse giant condensed type) over an empty room the visitor explores with a flashlight. Services from S05 (Movara cards; the active one expands red). Pricing from P08 (three dark cards + switch). Testimonials from T10 (infinite stream). CTA from C02 (centred spotlight). Footer from F06 (dark footer + newsletter).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Gallery: Magic UI light-rays, Magic UI marquee, and a Uiverse day/night switch.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Copy hook: "Moved by morning" becomes "Gone by morning".</div>
+<div class="gap"></div>
+<div class="pp"><b>C (minimal editorial):</b></div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Nav from N30 (Manna centred pill). Hero from H03 (Aden centred serif + line drawing). Services from S21 (P+Z accordion with an image). Pricing from P03 (giant word behind the cards). Testimonials from T02 (one big quote, names as tabs). CTA from C03 (split + stacked type). Footer from F05 (nuclaratx giant wordmark, the client's favourite).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Gallery: Animate UI topography background, Vengeance UI flip-fade-text ("We'll take [the sofa / the piano / ...] from here"; night list: the rug / the trunk / your name / everything), and Animate UI rolling-text buttons.</div>
+<div class="gap"></div>
+<div class="pp"><b>D (playful-sinister):</b></div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Nav from N32 (Moving Jack split pills). Hero from H15 (DelDude big playful type + big illustration): a cardboard-box mascot whose eyes follow the cursor. Services from S06 (heading left, image cards right, 3D tilt). Pricing from P01 (Stowra rounded cards). Testimonials from T13 (floating avatar collage, faceless avatars with closed eyes). CTA from C10 (gradient mesh card). Footer from F12 (1790 one-colour footer + spinning stamp).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Gallery: Magic UI particles, a Vengeance UI creepy-button (eyes in the CTA), and Cult UI direction-aware-tabs (Day crew / Night crew).</div>
+</div>
+  <h3>What came back</h3>
+  <div class="thumbs c4"><figure><img src="img/r1-a.jpg" alt=""><figcaption>A  A Calm Office (day)</figcaption></figure><figure><img src="img/r1-b.jpg" alt=""><figcaption>B  After Dark (night)</figcaption></figure><figure><img src="img/r1-c.jpg" alt=""><figcaption>C  We&#x27;ll Take It (night)</figcaption></figure><figure><img src="img/r1-d.jpg" alt=""><figcaption>D  Everything Fits (day)</figcaption></figure></div>
+  <p>Four full pages for a placeholder brand, "Quietly &amp; Co.", each with a Day/Night switch that changes the copy into a second meaning. Each was screenshotted at 390, 768 and 1440 px in both modes: 24 screenshots.</p>
+  <h3>What the review found, and the fix</h3>
+  <div class="tscroll"><table class="t">
+<tr><th>#</th><th>Version</th><th>Flaw found (where)</th><th>Fix</th></tr>
+<tr><td>1</td><td>A</td><td>Stats strip: the numbers rendered at 14 px. The label rule <code>.stat span</code> also hit the number span inside <code>&lt;b&gt;</code>.</td><td>Scoped the rule to the direct child (<code>.stat&gt;span</code>).</td></tr>
+<tr><td>2</td><td>A</td><td>Services bento: the 6th card left an empty cell at the end of the grid (desktop).</td><td>Made "Clean exit" a full-width card with the drawing and text side by side; it stacks on mobile.</td></tr>
+<tr><td>3</td><td>A</td><td>Night: the dark featured testimonial inverted to a bright cream block that jumped out of the page.</td><td>Night override: a dark card with an amber border.</td></tr>
+<tr><td>4</td><td>A</td><td>Night hero subheadline wrapped with a one-word last line ("want one.").</td><td>Widened the subheadline max-width from 520 to 560 px.</td></tr>
+<tr><td>5</td><td>B</td><td>The page scrolled sideways at every width (scrollWidth 4,948-6,219 px). The marquee rows overflowed.</td><td>Added <code>overflow:hidden</code> on the stream wrapper. scrollWidth now equals the viewport at all three widths.</td></tr>
+<tr><td>6</td><td>B</td><td>Hero: the flashlight sat behind the headline, so the room (boxes, window) was hidden and the outline word lost contrast. Day and night looked almost the same.</td><td>Moved the light's home and wander path to the right (x 0.7) on desktop and kept it centred on phones. Day radius 380 px (more of the room visible), night 170 px (narrow and tense).</td></tr>
+<tr><td>7</td><td>C</td><td>The giant "Rates" word behind the cards was almost invisible (a 1 px stroke in the line colour).</td><td>Changed to a 1.5 px stroke at 28% ink.</td></tr>
+<tr><td>8</td><td>D</td><td>Night: the featured "Family home" plan flipped to a cream card (ink and background swap).</td><td>Night override: a deep purple card with an orange border.</td></tr>
+<tr><td>9</td><td>D</td><td>The night hero headline broke into four ragged lines ("Everything / fits. / If you fold it / right.").</td><td>Shortened it to "It all fits. / If you fold it right."</td></tr>
+<tr><td>10</td><td>all</td><td>Mobile check: is the visual on top, are buttons full width, is the pushed plan first?</td><td>Confirmed in each 390 px shot: the A sky hero, the B room above the text, the C drawing above the headline and the D mascot above the text. Pushed plans come first (CSS <code>order:-1</code>).</td></tr>
+<tr><td>11</td><td>all</td><td>No sideways scroll at 390, 768 or 1440, day or night.</td><td>Measured: scrollWidth equals the viewport width in all 24 shots.</td></tr>
+</table></div>
+  <div class="card lesson"><h4>What we learned</h4><ul style="margin-top:4pt">
+    <li>Naming one moodboard id per section gave four different pages, not one page in four colours.</li>
+    <li>Most flaws only showed in the screenshots: a sideways scroll of several thousand pixels (row 5) was not visible in the code.</li>
+  </ul></div>
+</section>
+
+<section class="round" id="round-2">
+  <div class="rhead"><div class="no">2</div><div><h3>Two agents plan the hidden features together</h3><p>23 Nov 03:02 · agent 1 (Claude) and a Codex agent · plan only, no build</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>Before choosing a version, add hidden features and much heavier interaction, and have two agents work out the best plan together.</p>
+  <div class="prompt"><div class="plabel">Prompt 2 · 23 Nov 03:02 · to agent 1 (Claude) and the Codex agent</div>
+<div class="ph ph1">Round 2: plan the hidden features with two agents (plan only)</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">Four versions of the moving-company page exist (A Calm Office, B After Dark, C We'll Take It, D Everything Fits), each with Day/Night copy, a sources file, a prompt log and screenshots. The client now wants hidden features (click one thing and it turns into another), heavy interaction and animation, and wants two agents to reach the best plan together before anything is removed or built. The homework rules still apply: gallery components, alive on phone, tablet and desktop, every section traced to a moodboard keep.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Agent 1 (Claude, owner of the final proposal) and the Codex agent (second opinion, strongest on animation engineering) produce one short proposal for hidden features, for the client to approve. Write a plan; build nothing yet.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Round 1, independently. Each agent writes its own ideas file without reading the other's, so the two lists are not copies of each other. Each file holds 12 to 20 hidden features. For each: the trigger, what it turns into, why it fits the story, the technology, effort (S, M or L), the mobile fallback and the risk (performance, accessibility, reduced motion). Each agent also names the best base version and which parts to take from the others.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Round 2, cross-review. Each agent reads the other's file and writes a review: keep, cut, merge or improve, with reasons. Flag anything that reads as actually illegal, as a cheap jump-scare, or as animation for its own sake.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Round 3, merge. Agent 1 writes the proposal. The Codex agent adds "agree" or at most five objections. Agent 1 resolves them.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Stop after three rounds, so the two agents do not debate without end.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">5.</span>Put all content in files. A message between agents only says "your turn: read this file".</div>
+<div class="gap"></div>
+<div class="tg">&lt;decisions&gt;</div>
+<div class="pp">Already decided: plan only; the client chooses before any build.</div>
+<div class="pp">Your call: small throwaway prototypes (under 50 lines) to prove a risky idea.</div>
+<div class="pp">For the client to decide: any point where the two agents still disagree. Give both views in one line each, with a default to use if no answer comes.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">A proposal the client can read in a few minutes:</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>the recommended base version and the parts taken from the others, each with its moodboard keep;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>the top 8 to 10 hidden features, ranked, one line each (trigger, result, technology, effort), with three marked as showpieces;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>two or three open choices for the client;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>a build plan: stack, order, rough hours, and the plan for mobile and reduced motion.</div>
+<div class="pp">Work without opening a visible browser window, send nothing outside this laptop, and cite any research links. Agent 1 prints when the proposal is final: DONE proposal &lt;path&gt; &lt;one line&gt;.</div>
+</div>
+  <h3>What came back</h3>
+  <p>Five files: an ideas list from each agent, written without seeing the other's; a review of the other's list from each; and one merged proposal for the client.</p>
+  <ul>
+    <li>Both agents picked version C as the base, with the pricing from A and the selector from D.</li>
+    <li>10 hidden features, ranked, each with trigger, result, technology and hours. 3 marked as showpieces.</li>
+    <li>3 points where the agents disagreed, each given to the client with both views and a default if no answer comes.</li>
+    <li>The Codex agent raised 2 objections to the merged proposal. Both were accepted.</li>
+    <li>4 small prototypes to prove the risky ideas:</li>
+  </ul>
+  <div class="thumbs c4"><figure><img src="img/r2-1.jpg" alt=""><figcaption>Prototype 1: the room by day</figcaption></figure><figure><img src="img/r2-2.jpg" alt=""><figcaption>Prototype 1: the same room at night</figcaption></figure><figure><img src="img/r2-3.jpg" alt=""><figcaption>Prototype 2: torch hunt</figcaption></figure><figure><img src="img/r2-4.jpg" alt=""><figcaption>Prototype 4: the footer loses its letters</figcaption></figure></div>
+  <div class="card lesson"><h4>What we learned</h4><ul style="margin-top:4pt">
+    <li>"Write your list without reading the other's" matters. Two independent lists overlap where an idea is strong and differ where it is a matter of taste.</li>
+    <li>A cap of three rounds keeps two agents from debating without end.</li>
+    <li>The second agent cut ideas the first one liked, for a good reason: a secret word typed into a real quote form can be a real customer's inventory.</li>
+  </ul></div>
+</section>
+
+<section class="round" id="round-3">
+  <div class="rhead"><div class="no">3</div><div><h3>Six separate worlds</h3><p>23 Nov 03:34 · agent 1 (Claude) builds V1 to V3, the Codex agent builds V4 to V6</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>The animations are nice but shallow. Add meaning, humor, dark fantasy and real media, and make more versions that are fully separate from each other.</p>
+  <div class="prompt"><div class="plabel">Prompt 3 · 23 Nov 03:34 · to agent 1 (Claude) and the Codex agent</div>
+<div class="ph ph1">Round 3: six fully separate versions with depth</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">The client reviewed the four versions and the prototypes. The animations are liked, but the pages feel simple: there is too little meaning, humor and dark fantasy, and still images alone are not enough. The client wants more versions, completely separate from each other, so that choosing is easier. The homework rules still apply: interactive background, alive at 390, 768 and 1440 px, class gallery components, and every section captioned with its moodboard keep id.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Build six landing pages, each one a different world with its own story. Agent 1 (Claude) builds V1 to V3; the Codex agent builds V4 to V6. Agent 1 then builds an overview page with one card per version.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pp">Every version must show all four kinds of depth:</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>A world, not a page. One strong concept with its own lore: who the movers are, where things go, what the rules are. The page tells a short story as you scroll, with a beginning, a turn and an ending.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Humor. Deadpan and specific, in the fine print, pricing names, FAQ answers and testimonials. Every section has at least one line that makes the reader smile.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Dark fantasy. The night twist is supernatural or uncanny (ferrymen, spirits, a house that moves itself), so the page stays clear of anything criminal or violent.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Rich media. Video loops, Lottie animation, scroll-driven scenes, canvas or WebGL effects, optional sound. Use real free-licence assets and record each asset's source and licence in an assets file. Use original characters only, because existing film or anime material is not ours to use.</div>
+<div class="gap"></div>
+<div class="pp">Also: each version keeps three to five secrets that fit its own lore, with a list the presenter can open.</div>
+<div class="gap"></div>
+<div class="tg">&lt;concepts&gt;</div>
+<div class="pp">Starting points; improve them, but keep the six completely different from each other.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V1 The Ferryman (Claude): a moving company on the river between here and there; pricing in coins, a ledger of who crossed.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V2 Haunted Relocations (Claude): they move haunted houses, and the ghosts come with the furniture.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V3 The House That Moves Itself (Claude): uncanny architecture; rooms rearrange as you scroll.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V4 Department of Relocation (Codex): a cold bureau that relocates people between worlds; forms, stamps, queue numbers.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V5 Night Crew Folklore (Codex): small creatures that pack everything at night; storybook style with original animated characters.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V6 Case File: The Empty Apartment (Codex): a noir dossier; the scroll is the investigation.</div>
+<div class="gap"></div>
+<div class="tg">&lt;decisions&gt;</div>
+<div class="pp">Already decided: six versions, the split between the two agents, and the four kinds of depth.</div>
+<div class="pp">Your call: the libraries (GSAP, lottie-web, Lenis, Three.js), used only where they earn their place; lazy-load video and respect reduced motion.</div>
+<div class="pp">Ask me before: paid assets, new accounts, or anything sent outside this laptop.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pp">After your first version, read the other agent's first version and send three notes on depth, humor and quality in a notes file. Screenshot every version at 390, 768 and 1440 px before calling it done.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">Per version: the page, an assets file (source and licence per asset), a sources file (moodboard id per section), and the secrets. The overview page shows, per version, a looping preview recorded without a visible browser, the title, a two-line pitch, the best joke, the secrets and a link. The Codex agent prints DONE codex-v456 &lt;one line&gt;. Agent 1 prints DONE round3 &lt;path to the overview page&gt; &lt;one line&gt; when all six are done.</div>
+</div>
+  <h3>What came back</h3>
+  <div class="thumbs c3"><figure><img src="img/r3-v1.jpg" alt=""><figcaption>V1 The Ferryman</figcaption></figure><figure><img src="img/r3-v2.jpg" alt=""><figcaption>V2 Haunted Relocations</figcaption></figure><figure><img src="img/r3-v3.jpg" alt=""><figcaption>V3 The House That Moves Itself</figcaption></figure><figure><img src="img/r3-v4.jpg" alt=""><figcaption>V4 Department of Relocation</figcaption></figure><figure><img src="img/r3-v5.jpg" alt=""><figcaption>V5 Night Crew Folklore</figcaption></figure><figure><img src="img/r3-v6.jpg" alt=""><figcaption>V6 Case File: The Empty Apartment</figcaption></figure></div>
+  <p>Six pages, each with its own story, rich media (video loops, scroll scenes, original animated characters), an asset list with licences, and three to five secrets. Halfway, each agent reviewed the other's first page and sent three notes. Two examples:</p>
+  <ul>
+    <li>Agent 1 on V4: the jokes are the strongest part, but apart from one widget it reads as a clean template with clever copy. Turn the monitor into a pinned scroll scene and add real footage.</li>
+    <li>Codex on V1: with the secrets list open, the page measured 419 px wide in a 390 px viewport. Find the element that overflows before shipping.</li>
+  </ul>
+  <div class="card lesson"><h4>What we learned</h4><ul style="margin-top:4pt">
+    <li><b>The prompt aimed at the wrong tone.</b> It turned "humor" and "dark fantasy" into funny, supernatural pages. The client found all six too bright and too playful.</li>
+    <li>The fix in the next prompt: describe the tone by what it is like (a private bank, a security firm), and narrow the focus to four things.</li>
+    <li>Six versions at once spread the effort thin. Round 4 asks for three, much deeper.</li>
+  </ul></div>
+</section>
+
+<section class="round" id="round-4">
+  <div class="rhead"><div class="no">4</div><div><h3>Dark, professional, real 3D</h3><p>23 Nov 04:40 · agent 1 builds V7 to V9 · 04:57: agents 2 and 3 get one extra version each</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>None of the six work: too bright and too happy. Make it dark, grim and professional, a little frightening, with real 3D animation and lines about making pain disappear.</p>
+  <div class="prompt"><div class="plabel">Prompt 4 · 23 Nov 04:40 · to agent 1</div>
+<div class="ph ph1">Round 4: dark, professional, real 3D (three versions, much deeper)</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">The client rejected all six round 3 versions: too bright, too happy, too normal, with flat colour and simple animation. The service is about making something disappear, so the page should feel grim and professional, a little frightening, never cartoonish. The client asked for 3D animation and for lines in the family of "make your pain disappear". This round builds fewer versions and puts the effort where it is needed.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Agent 1 builds three dark landing pages (V7, V8, V9), each built around one scroll-driven 3D scene, and an overview page with one card per version.</div>
+<div class="gap"></div>
+<div class="tg">&lt;learn_first&gt;</div>
+<div class="pp">Spend at most 20 minutes on four to six dark premium WebGL sites and tutorials. Note how they do scroll-linked camera paths, dissolve shaders, fog and post-processing, and how they stay fast on a laptop GPU. Write the links and the rules you take from them into a notes file.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pp">Focus on these four things only:</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Dark. A near-black base and one cold accent per version. Light is used as in a horror film: one source, deep shadow. Use dark, cold tones throughout, with no daylight-first page.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Real 3D. A Three.js scene is the hero of every version: scroll-driven, with custom shaders (dissolve into particles, fog, light beams, film grain). The core visual idea is disappearance: something solid being erased. Use procedural geometry or free-licence models with credit. Keep the look photographic and restrained, with no cartoon characters or mascots.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Professional but scary. The restraint of a private bank or a high-end security firm, with tension underneath: large confident type, slow deliberate motion, silence. The tone is serious throughout, with no jokes.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Copy that sells disappearance as relief. Short, cold lines with two meanings: "Make your problems disappear." "Some things are better gone." "Discreet. Final. Overnight." Write them as a premium service promise and let the visitor fill the gap; name nothing illegal.</div>
+<div class="gap"></div>
+<div class="tg">&lt;versions&gt;</div>
+<div class="pp">Each is a full page (nav, hero, services, pricing, testimonials, CTA, footer) where the 3D scene drives the scroll story.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V7 The Vanishing: black and toxic green. A solid object breaks into drifting particles as you scroll; the particles form the next section's shape.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V8 Clean Exit: monochrome, cold white light. A slow descent down a foggy lift shaft; each section is a floor; at the bottom the door opens onto nothing.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V9 Night Freight: deep red and amber. A truck in rain at night, headlights through fog; it drives away and the scene empties towards the CTA.</div>
+<div class="pp">Each has three to five hidden features that fit the tone, and a references layer (a small switch or the R key) that shows the moodboard id of every section.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Performance on this laptop's integrated GPU: aim for 60 fps, cap the pixel ratio at 1.5, pause the render loop when the page is off-screen or hidden, use one WebGL context per page.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Mobile gets a lighter scene with the same mood. Reduced motion gets a still key frame.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Screenshot and record a short motion preview of each version, and check 390, 768 and 1440 px.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Judge your own screenshots: if a page looks normal, bright or like a template, it is not finished.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">Three version folders, each with the page, an assets file, a sources file naming the class gallery pieces, a preview image and a preview video; the notes file; and the overview page with the looping preview, the hero line, a two-line pitch and a link per version. Work without a visible browser window; nothing is deployed or sent. Print DONE round4 &lt;path to the overview page&gt; &lt;one line&gt; when all three and the overview are done.</div>
+</div>
+  <div class="prompt keep"><div class="plabel">Prompt 4b · 23 Nov 04:57 · to agents 2 and 3</div>
+<div class="ph ph1">Round 4, extra: one more dark 3D version from each of two new agents</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">Read the round 4 prompt in full first: the same feedback, focus, quality bar and rules apply. Agent 1 is already building V7 The Vanishing (black and green, particle dissolve), V8 Clean Exit (white fog, lift shaft) and V9 Night Freight (red and amber, truck in rain). Two more agents each add one version, so the client has more directions to compare. Leave V7 to V9 and the overview page untouched, and use a concept and palette they do not use.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Build exactly one version in your own folder, then stop.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V10 The Quiet Room (agent 2): a bare concrete room, one hanging lamp, a single chair. Scroll moves the camera slowly around the room; a shadow sits in the chair and is gone when the camera looks back. Palette: graphite and sodium-orange lamp light. Lines: "Make your pain disappear." "We were never here."</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V11 Erasure (agent 3): ink and paper in deep blue-black water. A signed contract, a name or a photograph dissolves like ink as you scroll; the water goes still at the CTA. Palette: blue-black, bone white, one thin cold-cyan accent. Lines: "Some names are better forgotten." "Signed. Sealed. Erased."</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pp">The same as V7 to V9: a full page; a Three.js scene that drives the scroll story; three to five hidden features that fit the serious tone; a references layer with the moodboard ids. Keep the GPU load modest (pixel ratio capped at 1.5, loop paused off-screen), because another agent is rendering at the same time.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">The page, an assets file, a sources file, a preview image and a preview video, and checks at 390, 768 and 1440 px. Work without a visible browser window; nothing is deployed or sent. Print DONE &lt;V10|V11&gt; &lt;path&gt; &lt;one line&gt; when done.</div>
+</div>
+  <h3>What came back</h3>
+  <div class="thumbs c3"><figure><img src="img/r4-v7.jpg" alt=""><figcaption>V7 The Vanishing (shipped as LETHE)</figcaption></figure><figure><img src="img/r4-v8.jpg" alt=""><figcaption>V8 Clean Exit (shipped as VOSS)</figcaption></figure><figure><img src="img/r4-v9.jpg" alt=""><figcaption>V9 Night Freight (shipped as HOLLOWAY)</figcaption></figure></div>
+  <ul>
+    <li>Three dark pages, each built around one scroll-driven 3D scene: a figure that dissolves into particles, a descent down a lift shaft, a truck leaving in the rain.</li>
+    <li>A notes file with the sources studied (shader and lighting tutorials, award-winning 3D sites) and the rules taken from them: one fixed canvas, one light, one cheap post-processing pass, a pixel-ratio cap.</li>
+    <li>The two extra versions (V10, V11) were stopped unfinished when the next feedback arrived. Their agents moved to round 5.</li>
+  </ul>
+  <div class="card lesson"><h4>What we learned</h4><ul style="margin-top:4pt">
+    <li>Stating the tone and the look precisely (dark, one light, photographic, serious) removed the round 3 problem in one pass.</li>
+    <li>A quality bar the agent can check itself: if a page looks normal, bright or like a template, it is not finished.</li>
+    <li>Each page got one thing right: the layout of one, the idea of another, the tone of the third. The next prompt says which part to take from which page.</li>
+    <li>A real bug: scrolling back up did not bring the truck back. Round 5 turns it into a requirement with a test.</li>
+  </ul></div>
+</section>
+
+<section class="round" id="round-5">
+  <div class="rhead"><div class="no">5</div><div><h3>Four agents, four versions, one iteration</h3><p>23 Nov 05:15 · agents 1 to 4, one version each · 15:25: the phone and tablet pass</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>Combine the layout of one page, the palette of the second and the seriousness of the third. Fix the scroll so the scene comes back on the way up. Go deeper, up to "remove your existence", with a double-meaning headline and much darker testimonials.</p>
+  <div class="prompt"><div class="plabel">Prompt 5 · 23 Nov 05:15 · to agents 1, 2, 3 and 4</div>
+<div class="ph ph1">Round 5: four agents, four versions, one iteration</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">The client reviewed the three round 4 pages and liked a different thing in each: the page layout of HOLLOWAY (V9), the idea and cold palette of VOSS (V8), and the serious tone of LETHE (V7). The problems: in V9 the truck does not come back when you scroll up; V8 is weak on contrast and spacing; V7 is unpolished and its 3D object just sits in the centre. The client also wants more depth (a service that goes as far as "remove your existence"), a headline with a double meaning, and much darker testimonials.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Four agents each build one version that combines the three strengths and fixes the problems. Agent 1 also builds the overview page once all four are finished.</div>
+<div class="gap"></div>
+<div class="tg">&lt;references&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Tone: serious, premium, quiet menace, as in LETHE (round 4, V7).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Palette: the VOSS (round 4, V8) cold monochrome: near-black, graphite, cold white light, at most one thin accent.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Page structure: HOLLOWAY (round 4, V9); start from it, then go further.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Moodboard: every section names its keep id in a references layer the visitor can switch on.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Reversible scroll. The 3D scene is a timeline scrubbed by the scroll position, so scrolling up restores every object exactly. Visitors can also look around by dragging, within limits, at any scroll position.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>A service ladder that escalates: remove your stuff, remove your trace, remove your existence. Lines in the family: "Remove your existence", "No trace. No return address."</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>The signature headline. The sentence reads "Make you disappear." A proofreader's insertion caret adds a small, faint "r stuff" after "you", so the page shows "Make your stuff disappear" while the eye reads the shorter sentence. Animate it: the insertion writes itself in after a beat. Every version uses this.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Darker testimonials. Portraits with the face protected (a bar over the eyes, heavy blur, cropped below the eyes, or a silhouette), case numbers in place of names, and an ink-smear, fingerprint or blood-mark texture. Use free-licence photos with credit, or procedural silhouettes. Dark, not gory.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">5.</span>Contrast and spacing. Body text at 4.5:1 or better; spacing on the 8 pt grid with generous side padding at every width.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">6.</span>The homework requirements stay: interactive background, class gallery pieces named in the sources file, works at 390, 768 and 1440 px, reduced motion supported.</div>
+<div class="gap"></div>
+<div class="tg">&lt;versions&gt;</div>
+<div class="pp">One per agent, each in its own folder.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V12 Holloway: Last Run (agent 1, who built V9): V9 rebuilt in the VOSS palette. The truck's route becomes chapters (pickup, empty streets, tunnel, only tyre marks in the rain); each chapter is a service tier.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V13 Voss: Descent (agent 2): the lift-shaft descent from V8 with real contrast, spacing and type hierarchy; each floor is a tier; at the bottom the door opens onto nothing.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V14 Lethe: Cold (agent 3): LETHE's dissolve idea in the VOSS palette; the figure moves through the page and dissolves across sections; its particles become the testimonials' smears.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V15 Existence Removal (agent 4): a private bureau with three tiers of removal. A room, a person and an identity are erased layer by layer as you scroll (photo, silhouette, outline, nothing).</div>
+<div class="gap"></div>
+<div class="tg">&lt;decisions&gt;</div>
+<div class="pp">Already decided: tone, palette, page structure, the headline trick and the reversible scroll.</div>
+<div class="pp">Your call: the scene details, the accent colour, the hidden features, the brand name inside your version.</div>
+<div class="pp">Ask me before: paid assets, deploying, or sending anything outside this laptop.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Check at 390, 768 and 1440 px, including a test that scrolls down and then up and proves the scene restores.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Four agents share one laptop: run every screenshot or video job through the shared render queue so only one runs at a time; cap the pixel ratio at 1.5; pause the loop when the page is hidden; use one WebGL context; work without a visible browser window.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Look at your own screenshots critically for contrast, spacing and polish before you report.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">Per version: the page, an assets file (source and licence), a sources file (moodboard ids and gallery pieces), a preview image and a preview video, and the check results. Print DONE &lt;V12|V13|V14|V15&gt; &lt;path&gt; &lt;one line&gt; when done. Agent 1 builds the overview page (one card per version: looping preview, hero line, link) after all four done lines exist, then prints DONE round5 &lt;path&gt; &lt;one line&gt;.</div>
+</div>
+  <h3>What came back</h3>
+  <div class="thumbs c4"><figure><img src="img/r5-v12.jpg" alt=""><figcaption>V12 Holloway: Last Run (agent 1)</figcaption></figure><figure><img src="img/r5-v13.jpg" alt=""><figcaption>V13 Voss: Descent (agent 2)</figcaption></figure><figure><img src="img/r5-v14.jpg" alt=""><figcaption>V14 Lethe: Cold (agent 3)</figcaption></figure><figure><img src="img/r5-v15.jpg" alt=""><figcaption>V15 Existence Removal (agent 4)</figcaption></figure></div>
+  <p>Four pages in one cold palette, each with the service ladder (stuff, trace, existence), the caret headline, darker testimonials with protected faces and case numbers, and a scene that plays backwards when you scroll up. Each agent delivered a scroll-down-then-up test at 390, 768 and 1440 px.</p>
+
+  <h3>The follow-up prompt: phone and tablet</h3>
+  <p class="ask"><b>What the feedback asked for</b>Make sure the tablet and phone versions are properly designed and finished too.</p>
+  <div class="prompt"><div class="plabel">Prompt 5b · 23 Nov 15:25 · to agents 1, 2, 3 and 4</div>
+<div class="ph ph1">Round 5, follow-up: tablet and phone designed properly</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">The four round 5 versions look right at 1440 px. The client asked that tablet and phone be properly designed and finished too. "Designed" means the smaller layouts look intentional and as polished as the desktop page; a desktop layout squeezed into a narrow screen does not count.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Each agent redesigns the tablet and phone layouts of its own version (V12 agent 1, V13 agent 2, V14 agent 3, V15 agent 4). The desktop layout stays as it is.</div>
+<div class="gap"></div>
+<div class="tg">&lt;learn_first&gt;</div>
+<div class="pp">Spend 10 minutes on how two or three dark premium WebGL sites handle phone and tablet: type scale, navigation, 3D framing, touch.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Type: a fluid scale; the headline is never clipped; the "r stuff" insertion stays readable and aligned at every width; lines of 30 to 45 characters on phone; body text 16 px or larger; contrast 4.5:1 or better over the 3D scene, with a scrim where needed.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Spacing: the 8 pt grid; side gutter at least 20 px on phone and 32 px on tablet; no sideways scroll.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Navigation: a real mobile nav (a menu sheet or a compact bar); tap targets at least 44 px; nothing overlaps the hero.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>3D: the camera is re-framed for portrait so the subject is visible, neither cropped nor tiny; a lighter scene on phones; dragging to look around works by touch and a one-finger vertical swipe still scrolls the page; scrolling up restores the scene on touch too.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">5.</span>Sections: the service ladder, pricing, testimonials, CTA and footer are laid out again per width (stacked, a carousel, or two columns on tablet).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">6.</span>Performance: pixel ratio at most 1.5, and 1.25 on phone; fewer particles on small screens.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">7.</span>Every hover-only hidden feature gets a touch equivalent.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pp">Check these six screen sizes without a visible browser: 390x844, 360x800, 430x932, 768x1024, 1024x768 and 820x1180. At each, measure the page width against the viewport, test touch drag and vertical swipe, and run the scroll-down-then-up test. Look at every screenshot critically before reporting.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">The updated page; a screenshot per size and section (hero, services, pricing, testimonials, CTA); a short report with, per width, what changed and the results of the two tests; a new preview image. Renders go through the shared render queue. Print DONE resp-&lt;V12|V13|V14|V15&gt; &lt;path&gt; &lt;one line&gt; when done.</div>
+</div>
+  <div class="thumbs c5"><figure><img src="img/r5r-1.jpg" alt=""><figcaption>V15 phone 390: hero</figcaption></figure><figure><img src="img/r5r-2.jpg" alt=""><figcaption>V15 phone 390: menu sheet</figcaption></figure><figure><img src="img/r5r-3.jpg" alt=""><figcaption>V15 phone 390: case files</figcaption></figure><figure><img src="img/r5r-4.jpg" alt=""><figcaption>V15 tablet 768: rates</figcaption></figure><figure><img src="img/r5r-5.jpg" alt=""><figcaption>V15 tablet 1024: hero</figcaption></figure></div>
+  <p>Example result, V15, at six screen sizes (390x844, 360x800, 430x932, 768x1024, 820x1180, 1024x768): no sideways scroll at any size; no tap target under 44 px; a sideways touch drag turns the scene without moving the page, and a vertical swipe scrolls as normal; the scene restores on the way back up at every size. The agent also listed what it did not do: no test on a real phone, and the study step could not be completed because the pages it tried refused automated reading.</p>
+  <div class="card lesson"><h4>What we learned</h4><ul style="margin-top:4pt">
+    <li>"The scroll must be reversible" only became true once the prompt asked for proof: a test that scrolls down, then up, and compares.</li>
+    <li>Pointing at a built page (tone like V7, palette like V8, structure like V9) is clearer than any adjective.</li>
+    <li>"Make mobile good" is not a spec. The follow-up defines it in numbers: body text 16 px or more, contrast 4.5:1, gutters 20 and 32 px, tap targets 44 px, six named screen sizes.</li>
+    <li>Four agents on one laptop need a shared rule, or they stall each other: one render at a time.</li>
+  </ul></div>
+</section>
+
+<section class="round" id="round-6">
+  <div class="rhead"><div class="no">6</div><div><h3>One direction, two builds</h3><p>23 Nov 18:25 · agent 3 builds V16, agent 1 builds V17</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>Lock the scroll section by section, keep the centred nav, the pricing and the testimonials, fix the home spacing, and drop the game-like dragging. Change the story: it should be about the person who is gone, with everything else left in place.</p>
+  <div class="prompt"><div class="plabel">Prompt 6 · 23 Nov 18:25 · to agents 3 and 1</div>
+<div class="ph ph1">Round 6: one direction, two builds</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">The client reviewed the four round 5 versions. LETHE (V14) is the best, but its theme is not right yet. What works: pages that hold the visitor on one section and move exactly to the next on each scroll; the centred nav; the pricing and the testimonials of HOLLOWAY (V12); the night scene of V12. What does not work: pages that stop midway between sections, so a presenter has to scroll precisely; the home page spacing of V12; a nav that is crowded on the right; drag-to-look, which is too much for a website. The biggest change is the story. The pages focus on removing belongings, but a room emptied of furniture looks like someone moved out by choice. The story should be the person who is gone while everything else stays, in the manner of the Japanese night-moving services that relocate a client overnight with a new start in a distant province. The homework is shown on Tue 24 Nov at 01:00 (+06); the build must be done by 21:00 on 23 Nov.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Two agents each build one take on the same direction, so the client can pick one. Agent 1 then builds the overview page with both.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V16 Lethe: Evaporation (agent 3, who built V14): start from V14. The night scene is a quiet cinematic backdrop behind LETHE's centred type; the person is the focus.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>V17 Holloway: Night Move (agent 1, who built V12): start from V12's scene, pricing and testimonials, laid out again in the centred LETHE style; the night sequence is the hero story.</div>
+<div class="gap"></div>
+<div class="tg">&lt;references&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Type, tone and centred layout: LETHE (round 5, V14).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Palette: VOSS cold monochrome with one thin red accent.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Night scene (rain, street, van): HOLLOWAY (round 5, V12).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Pricing section and redacted testimonials: V12, which the client likes; rewrite the testimonial content for this story (a neighbour, a landlord, a relative asking where they went).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Nav: the centred pill of V14, always centred and uncluttered.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">&ndash;</span>Moodboard: the keep id of every section stays in the references layer.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Concept: the night relocation of a person. The firm comes at night for the client and one bag; the room is left exactly as it was (bed unmade, cup on the table, lights on). The copy implies and never states; nothing is graphic. Lines in the family: "Leave the lights on.", "A new name, a far province, no forwarding address.", "Everything stays. Only you are gone." Keep the caret headline.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>Tiers rewritten around the person, for example: I The Night Move (you and one bag, one night), II The New Name (relocation and a new start), III Never Existed (the records follow you out).</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Section snap, the most important interaction. Every section is one full viewport. One wheel notch, one swipe or one key press moves exactly to the next section and settles precisely. Trackpad momentum must not skip a section. A section taller than the phone screen becomes two snap pages. Keyboard and reduced motion work.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>The backdrop advances one beat per section: the street at night, the lit window, the crew at the door, a figure walked to the van, the van leaving, the empty room with the lights still on. Low-poly silhouettes and light: cinematic and restrained. Scrolling up plays it back.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">5.</span>Reduce interaction to a subtle pointer tilt of a few degrees. It is a website, not a game.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">6.</span>Home page spacing: generous, centred, on the 8 pt grid, nothing crowding the hero.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">7.</span>The homework requirements stay: gallery pieces named, interactive background, phone and tablet designed as in the round 5 follow-up, reduced motion.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pp">Test the snap: at every step, down and then up, log the scroll position against the top of the section it should land on. Check 390, 768, 1024 and 1440 px.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">Per build: the page, an assets file, a sources file, a responsive report, screenshots per section at the four widths, a preview image and a preview video. Renders go through the shared render queue, without a visible browser window; nothing is sent. Print DONE &lt;V16|V17&gt; &lt;path&gt; &lt;one line&gt;. Agent 1 then builds the overview page and prints DONE round6 &lt;path&gt; &lt;one line&gt;.</div>
+</div>
+  <h3>What came back</h3>
+  <div class="thumbs c4"><figure><img src="img/r6-v16-hero.jpg" alt=""><figcaption>V16 Lethe: Evaporation: hero</figcaption></figure><figure><img src="img/r6-v16-night.jpg" alt=""><figcaption>V16: the night</figcaption></figure><figure><img src="img/r6-v16-cases.jpg" alt=""><figcaption>V16: statements</figcaption></figure><figure><img src="img/r6-v17.jpg" alt=""><figcaption>V17 Holloway: Night Move (stopped)</figcaption></figure></div>
+  <ul>
+    <li><b>V16</b> finished: seven snap sections on desktop, nine on tablet, ten on phone (long sections are split into extra snap pages, so nothing is cut off).</li>
+    <li>The snap test passed at 390x844, 360x800, 768x1024, 1024x768 and 1440x900: every step landed exactly on a section top, down and up, with no sideways scroll.</li>
+    <li>The first wheel rule failed the momentum test: when frames stalled, a long trackpad swipe skipped a section. The agent found it with the logged test and tightened the rule.</li>
+    <li><b>V17</b> was stopped before its phone and tablet checks, because the client picked V16.</li>
+  </ul>
+  <div class="card lesson"><h4>What we learned</h4><ul style="margin-top:4pt">
+    <li>Naming one interaction as the most important one, and asking for a logged test of it, found a bug that no screenshot shows.</li>
+    <li>Keeping the parts the client liked by name (pricing and testimonials of V12, nav of V14) stopped the agents from redesigning what already worked.</li>
+    <li>Less interaction made the page better: the drag-to-look from round 5 was removed, and only a slight pointer tilt stays.</li>
+  </ul></div>
+</section>
+
+<section class="round" id="round-7">
+  <div class="rhead"><div class="no">7</div><div><h3>Polish V16 into the final page</h3><p>23 Nov 19:05 · agent 3 · in progress as this draft is written</p></div></div>
+  <p class="ask"><b>What the feedback asked for</b>V16 is the one. Make the wording less direct, so that every line reads as a legitimate service. Add more sections with more information. Make the animation load earlier, look sharper and feel more dramatic.</p>
+  <div class="prompt"><div class="plabel">Prompt 7 · 23 Nov 19:05 · to agent 3</div>
+<div class="ph ph1">Round 7: polish V16 into the final homework page</div>
+<div class="gap"></div>
+<div class="tg">&lt;context&gt;</div>
+<div class="pp">The client chose V16 Lethe: Evaporation as the final page and likes its styling. Three things need work. The wording is too direct: read by a stranger, some lines could be taken as a claim about what the firm does, and the client wants copy that no one could hold against the firm. The page says too little and needs more sections at the end. The animation is good but should load earlier, look sharper and feel more dramatic. Deadline: 21:30 on 23 Nov (+06); the homework is shown at 01:00 on 24 Nov.</div>
+<div class="gap"></div>
+<div class="tg">&lt;task&gt;</div>
+<div class="pp">Agent 3 polishes V16 in place into the final page. Keep a copy of the current page first, so the round 6 state can be compared or restored.</div>
+<div class="gap"></div>
+<div class="tg">&lt;requirements&gt;</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">1.</span>Copy that is ambiguous everywhere. Every line, quoted alone, must read as a legitimate premium relocation and fresh-start service: voluntary, lawful, discreet. The darkness comes from mood, imagery and double meaning, never from a claim. Lines in the family: "We free you from your burden." "A quieter life, somewhere else." "Leave the weight behind." "Some departures are better without goodbyes." "A new beginning, handled discreetly." Rewrite every line that is too direct, including the tiers, FAQ, testimonials and image descriptions. Keep the caret headline. Add a short plain-language terms line in the footer: voluntary, adult clients only, lawful relocation services.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">2.</span>More information. Add these sections after the current end, each with section snap and a moodboard keep id in the references layer:</div>
+<div class="pl" style="margin-left:9pt"><span class="mk">&ndash;</span>How it works: four calm steps (a private consultation, the plan, the night, the new beginning).</div>
+<div class="pl" style="margin-left:9pt"><span class="mk">&ndash;</span>What we handle: logistics, discretion, the new address, aftercare.</div>
+<div class="pl" style="margin-left:9pt"><span class="mk">&ndash;</span>FAQ: six questions with answers that are ambiguous but legitimate.</div>
+<div class="pl" style="margin-left:9pt"><span class="mk">&ndash;</span>A final CTA with a consultation form (name, a way to reach you, "what would you leave behind?"), then the footer.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">3.</span>Animation that arrives earlier. Start the 3D scene and preload its assets during the first paint; show the hero type at once and fade the scene in within about 600 ms, so there is no blank wait on scroll.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">4.</span>Animation that is sharper. Pixel ratio up to 2 on desktop and 1.5 on phone, antialiasing on, crisper textures and shadows.</div>
+<div class="pl" style="margin-left:0pt"><span class="mk">5.</span>Animation that is more dramatic. Stronger light changes per section (headlights sweeping across, a door closing, a light going out), camera moves with weight (an eased push-in at each snap), one slow-motion beat at the key moment, film grain and a slow vignette pulse. Restrained and cinematic; the pointer tilt stays the only interaction.</div>
+<div class="gap"></div>
+<div class="tg">&lt;decisions&gt;</div>
+<div class="pp">Already decided: V16 is the final page. Keep what works: section snap, centred pill nav, the VOSS palette, the phone and tablet layouts, reduced motion.</div>
+<div class="pp">Your call: the exact wording within the family above, and which moodboard keep fits each new section.</div>
+<div class="pp">Ask me before: deploying or sending anything outside this laptop.</div>
+<div class="gap"></div>
+<div class="tg">&lt;verification&gt;</div>
+<div class="pp">Measure the frame rate on this laptop's integrated GPU and keep it at 50 fps or better after the resolution change. Re-run the snap test with the new sections. Screenshot every section at 390, 768 and 1440 px, and read every line of copy once more as a stranger would.</div>
+<div class="gap"></div>
+<div class="tg">&lt;output&gt;</div>
+<div class="pp">The updated page; the assets, sources and responsive files updated (the sources file lists the moodboard id of every section, including the new ones); screenshots per section at the three widths; the preview image and video recorded again. Renders go through the shared render queue, without a visible browser window. Print DONE r7-V16 &lt;path&gt; &lt;one line&gt; when done.</div>
+</div>
+  <h3>What came back</h3>
+  <div class="thumbs c4"><figure><img src="img/r7-hero.jpg" alt=""><figcaption>V16 after polish: hero</figcaption></figure><figure><img src="img/r7-how.jpg" alt=""><figcaption>V16: how it works</figcaption></figure><figure><img src="img/r7-faq.jpg" alt=""><figcaption>V16: questions</figcaption></figure><figure><img src="img/r7-phone.jpg" alt=""><figcaption>V16 phone 390: hero</figcaption></figure></div>
+  <p class="note">The page as it stood at 19:30 on 23 Nov, with the four new sections in place. The polish may still be in progress; the frame-rate figure and the final snap-test result go here when the done line arrives.</p>
+  <div class="card lesson"><h4>What this prompt does differently</h4><ul style="margin-top:4pt">
+    <li><b>It gives a test for copy.</b> "Every line, quoted alone, must read as a legitimate service" is something the agent can check line by line. "Make it less direct" is not.</li>
+    <li><b>It turns "better animation" into three separate requirements:</b> earlier (scene visible within about 600 ms), sharper (pixel ratio and antialiasing), more dramatic (light changes, camera weight, one slow beat), with a frame-rate floor so quality does not cost smoothness.</li>
+    <li><b>It protects what works.</b> The decisions list what must stay unchanged, and the agent keeps a copy of the page before editing.</li>
+  </ul></div>
+</section>
+
+<!-- ============ 5 ANATOMY ============ -->
+<section id="anatomy">
+  <p class="kick">05</p>
+  <h2>Anatomy of a good prompt</h2>
+  <p class="lede">The round 5 prompt, part by part. Left: the words of the prompt. Right: why that part is there.</p>
+  <table class="an">
+    <tr><td class="no">1</td><td class="q"><div># Round 5: four agents, four versions, one iteration</div></td>
+      <td class="w"><b>A title that states the scope.</b>Round, number of agents, number of versions. An agent that finds two prompt files knows which one is current and how big the job is.</td></tr>
+    <tr><td class="no">2</td><td class="q"><div>&lt;context&gt;<br>The client reviewed the three round 4 pages and liked a different thing in each: the page layout of HOLLOWAY (V9), the idea and cold palette of VOSS (V8), and the serious tone of LETHE (V7). The problems: in V9 the truck does not come back when you scroll up [...]</div></td>
+      <td class="w"><b>What happened, and why this round exists.</b>The agent cannot see the review. The context gives it the client's verdict in plain words: what to keep, what was wrong. With the reason in hand, the agent makes the hundred small decisions the prompt does not cover in the right direction.</td></tr>
+    <tr><td class="no">3</td><td class="q"><div>&lt;task&gt;<br>Four agents each build one version that combines the three strengths and fixes the problems. Agent 1 also builds the overview page once all four are finished.</div></td>
+      <td class="w"><b>The outcome in two sentences.</b>An action verb ("build"), the count, the owner, and the order of the dependent step. Everything after this is detail.</td></tr>
+    <tr><td class="no">4</td><td class="q"><div>&lt;references&gt;<br>- Tone: serious, premium, quiet menace, as in LETHE (round 4, V7).<br>- Palette: the VOSS (round 4, V8) cold monochrome [...]<br>- Page structure: HOLLOWAY (round 4, V9); start from it, then go further.<br>- Moodboard: every section names its keep id [...]</div></td>
+      <td class="w"><b>Point at something that exists.</b>Each quality is tied to a page the agent can open, or to a moodboard keep. "As in V7" is exact; "serious and premium" alone is not. This is the class rule about references, applied to our own earlier work.</td></tr>
+    <tr><td class="no">5</td><td class="q"><div>1. Reversible scroll. The 3D scene is a timeline scrubbed by the scroll position, so scrolling up restores every object exactly.</div></td>
+      <td class="w"><b>A bug, restated as a requirement.</b>It names the mechanism wanted (a timeline tied to scroll position) and the behaviour that proves it. Nobody has to argue about what "reversible" means.</td></tr>
+    <tr><td class="no">6</td><td class="q"><div>3. The signature headline. The sentence reads "Make you disappear." A proofreader's insertion caret adds a small, faint "r stuff" after "you" [...] Animate it: the insertion writes itself in after a beat. Every version uses this.</div></td>
+      <td class="w"><b>Exact wording for the one idea that must not drift.</b>The sentence, the mark, the size, the motion. "Every version uses this" makes it a fixed point, so four agents produce four takes on the same signature.</td></tr>
+    <tr><td class="no">7</td><td class="q"><div>4. Darker testimonials. Portraits with the face protected (a bar over the eyes, heavy blur, cropped below the eyes, or a silhouette), case numbers in place of names [...] Dark, not gory.<br>5. Contrast and spacing. Body text at 4.5:1 or better; spacing on the 8 pt grid [...]</div></td>
+      <td class="w"><b>Options plus a limit; numbers, not wishes.</b>A list of acceptable treatments leaves room to design, and three words set the line that must not be crossed. "Better contrast" becomes a ratio the agent can measure in its own screenshots.</td></tr>
+    <tr><td class="no">8</td><td class="q"><div>6. The homework requirements stay: interactive background, class gallery pieces named in the sources file, works at 390, 768 and 1440 px, reduced motion supported.</div></td>
+      <td class="w"><b>Carry the standing requirements forward.</b>After five rounds the original homework is easy to lose. Each prompt repeats it in one line.</td></tr>
+    <tr><td class="no">9</td><td class="q"><div>&lt;versions&gt;<br>- V12 Holloway: Last Run (agent 1, who built V9): V9 rebuilt in the VOSS palette [...]<br>- V15 Existence Removal (agent 4): a private bureau with three tiers of removal [...]</div></td>
+      <td class="w"><b>One owner per version.</b>Each agent has a name, a folder and a one-paragraph concept. "Who built V9" gives the work to the agent that already knows that code. Different concepts mean the client compares four ideas, not four copies.</td></tr>
+    <tr><td class="no">10</td><td class="q"><div>&lt;decisions&gt;<br>Already decided: tone, palette, page structure, the headline trick and the reversible scroll.<br>Your call: the scene details, the accent colour, the hidden features [...]<br>Ask me before: paid assets, deploying, or sending anything outside this laptop.</div></td>
+      <td class="w"><b>Who decides what.</b>The client's decisions are stated as fixed, so the agent does not reopen them. The agent's freedom is stated too, so it does not stop to ask. Anything costly or public needs a yes first. The human directs; the agent executes.</td></tr>
+    <tr><td class="no">11</td><td class="q"><div>&lt;verification&gt;<br>- Check at 390, 768 and 1440 px, including a test that scrolls down and then up and proves the scene restores.<br>- Four agents share one laptop: run every screenshot or video job through the shared render queue [...]<br>- Look at your own screenshots critically [...]</div></td>
+      <td class="w"><b>Proof before the report.</b>The test turns the hardest requirement into evidence. The render queue keeps four agents from freezing one laptop. The last line makes the agent its own first reviewer.</td></tr>
+    <tr><td class="no">12</td><td class="q"><div>&lt;output&gt;<br>Per version: the page, an assets file (source and licence), a sources file (moodboard ids and gallery pieces), a preview image and a preview video, and the check results. Print DONE &lt;V12|V13|V14|V15&gt; &lt;path&gt; &lt;one line&gt; when done.</div></td>
+      <td class="w"><b>The same files from everyone, and a done line.</b>The orchestrator can review four versions the same way, and knows exactly when to start. The sources file is what lets us say which moodboard reference each section came from.</td></tr>
+  </table>
+  <div class="card"><h4>The short version</h4>
+    <ul style="margin-top:4pt">
+      <li>Say what happened and why, in plain words, before saying what to do.</li>
+      <li>Give a reference for every quality: a moodboard id or a page already built.</li>
+      <li>Write requirements that can be checked: a number, a width, a test.</li>
+      <li>Separate what is decided, what the agent may decide, and what needs a yes first.</li>
+      <li>Ask for the same files from everyone, and for one exact line at the end.</li>
+    </ul></div>
+</section>
+
+<!-- ============ 6 PLACEHOLDERS ============ -->
+<section class="end" id="live">
+  <p class="kick">06</p>
+  <h2>Live page and final screenshots</h2>
+  <div class="box"><div><b>Live page</b> <a href="https://make-you-disappear.vercel.app/">make-you-disappear.vercel.app</a></div></div>
+  <h3>Final screenshots</h3>
+  <div class="three">
+    <div class="box"><div><b>Desktop</b>1440 px</div></div>
+    <div class="box"><div><b>Tablet</b>768 px</div></div>
+    <div class="box"><div><b>Phone</b>390 px</div></div>
+  </div>
+  <h3>Final version</h3>
+  <p>V16 "Lethe: Evaporation", after the round 7 polish. Chosen for its type and styling, the section-by-section scroll, and the centred layout.</p>
+</section>
+
+<footer class="pg">Class 3 homework · interactive landing page · moving company niche · 23 Nov 2026</footer>
+</main>
+
+<script>
+(function(){
+  if(!window.matchMedia('screen').matches)return;
+  document.querySelectorAll('.prompt').forEach(function(p,i){
+    if(p.scrollHeight<460)return;
+    p.classList.add('clip');p.id=p.id||'prompt-'+i;
+    var b=document.createElement('button');b.type='button';b.className='more';
+    b.setAttribute('aria-controls',p.id);b.setAttribute('aria-expanded','false');b.textContent='Show the full prompt';
+    b.addEventListener('click',function(){
+      var open=p.classList.toggle('clip')===false;
+      b.setAttribute('aria-expanded',open);b.textContent=open?'Collapse the prompt':'Show the full prompt';
+      if(!open)p.scrollIntoView({block:'nearest'});
+    });
+    p.after(b);
+  });
+})();
+</script>
+</body>
+</html>

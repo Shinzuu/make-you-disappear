@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LETHE · Private Relocation</title>
+<meta name="description" content="Lethe. A discreet fresh-start and relocation service. Placeholder brand, class exercise.">
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"><link rel="preload" as="script" href="r4.js">
+<link rel="preload" as="image" href="media/p1.jpg"><link rel="preload" as="image" href="media/p2.jpg"><link rel="preload" as="image" href="media/p3.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,200;0,300;0,400;0,500;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* VOSS palette: near-black, graphite, cold white. One thin accent: red. 8 pt grid. Every section is one snap page. */
+:root{--bg:#060708;--panel:rgba(10,12,14,.84);--ink:#eef0f2;--body:#c6cbd1;--mute:#9aa0a8;--line:rgba(238,240,242,.14);--line2:rgba(238,240,242,.28);--acc:#c2332b;--sans:"Inter Tight",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;--ease:cubic-bezier(.65,0,.35,1);--pad:64px;--top:104px;--bot:72px}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg);overflow:hidden;overscroll-behavior:none}
+body{background:transparent;color:var(--body);font:400 17px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none;opacity:0;transition:opacity .6s ease-out}
+body.ready #gl{opacity:1}
+#veil{position:fixed;inset:0;z-index:1;background:#050608;opacity:0;pointer-events:none}
+main{position:relative;z-index:2;overflow-x:clip}
+a{color:inherit}
+.k{font:400 12px/1.5 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.k b{font-weight:400;color:var(--ink)}
+.ref{display:none;font:400 11px/1.5 var(--mono);letter-spacing:.06em;color:var(--ink);margin:16px auto 0;padding-left:12px;border-left:1px solid var(--acc);text-align:left;max-width:max-content}
+body.refs .ref{display:block}
+h1,h2,h3{color:var(--ink);font-family:var(--sans)}
+h2{font-weight:200;font-size:clamp(36px,4.6vw,72px);line-height:1;letter-spacing:-.045em;margin-top:16px}
+h2 em{font-style:normal;font-weight:300;color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;height:56px;padding:0 32px;border:1px solid var(--ink);color:#060708;background:var(--ink);font:500 14px/1 var(--sans);letter-spacing:.04em;text-decoration:none;cursor:pointer;transition:background .5s var(--ease),color .5s var(--ease)}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:rgba(6,7,8,.4);color:var(--ink);border-color:var(--line2)}.btn.ghost:hover{background:var(--ink);color:#060708;border-color:var(--ink)}
+:focus-visible{outline:1px solid #fff;outline-offset:4px}
+/* NAV · N31 Skylan dark floating pill, always centred */
+nav{position:fixed;top:16px;left:0;right:0;z-index:20;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
+.pill{pointer-events:auto;display:flex;align-items:center;gap:32px;height:56px;padding:0 8px 0 24px;background:rgba(9,11,13,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:999px;max-width:100%}
+.logo{font:400 14px/1 var(--mono);letter-spacing:.5em;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:12px}
+.logo i{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+.links{display:flex;gap:24px;font:400 14px var(--sans);color:var(--body)}.links a{text-decoration:none;transition:color .4s;white-space:nowrap}.links a:hover,.links a.cur{color:#fff}
+.sw{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--mute);font:400 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.sw[aria-pressed=true]{color:var(--ink);border-color:var(--acc)}
+.pill .btn{height:40px;padding:0 20px;border-radius:999px;font-size:13px;white-space:nowrap}
+.menu{display:none;align-items:center;gap:12px;height:44px;padding:0 16px;border:1px solid var(--line2);border-radius:999px;background:none;color:var(--ink);font:400 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+.menu i{width:16px;height:7px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);transition:height .4s var(--ease)}
+.menu[aria-expanded=true] i{height:1px;border-bottom:0}
+.sheet{position:fixed;inset:0;z-index:19;display:flex;flex-direction:column;justify-content:flex-end;padding:104px var(--pad) 32px;background:rgba(5,6,7,.95);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);overflow-y:auto;opacity:0;visibility:hidden;transition:opacity .5s var(--ease),visibility 0s .5s}
+.sheet.open{opacity:1;visibility:visible;transition:opacity .5s var(--ease)}
+.sheet .sl a{display:flex;align-items:baseline;gap:24px;min-height:72px;padding:16px 0;border-top:1px solid var(--line);font:200 40px/1 var(--sans);letter-spacing:-.04em;color:var(--ink);text-decoration:none}
+.sheet .sl a span{font:400 11px/1 var(--mono);letter-spacing:.16em;color:var(--mute);width:24px}
+.sheet .sf{display:flex;flex-direction:column;gap:24px;padding-top:32px;border-top:1px solid var(--line)}
+.sheet .sw{display:inline-flex;align-items:center;height:44px;padding:0 20px;color:var(--ink);border-color:var(--line2);align-self:flex-start}
+/* page counter: bottom left, out of the way */
+.count{position:fixed;left:var(--pad);bottom:24px;z-index:12;display:flex;align-items:center;gap:12px;font:400 11px var(--mono);letter-spacing:.14em;color:var(--mute);pointer-events:none}
+.count i{position:relative;width:64px;height:1px;background:var(--line2)}.count i::after{content:"";position:absolute;inset:0;background:var(--ink);transform-origin:0 50%;transform:scaleX(var(--p,0));transition:transform .9s var(--ease)}
+.count b{font-weight:400;color:var(--ink)}
+/* SNAP PAGES: one viewport each, content centred and anchored low so the scene owns the top of the frame */
+.page,.sub{position:relative;height:100vh;height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;text-align:center;padding:var(--top) var(--pad) var(--bot);overflow:hidden}
+.sub{display:contents}
+.page::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(6,7,8,0) 22%,rgba(6,7,8,.74) 58%,rgba(6,7,8,.94))}
+.c{width:100%;max-width:1184px}
+.fade{opacity:0;transform:translateY(24px);filter:blur(8px);transition:opacity .7s var(--ease),transform .9s var(--ease),filter .7s var(--ease)}
+.on>.fade,.on.fade{opacity:1;transform:none;filter:none;transition-delay:.35s}
+.fade .fade{opacity:1;transform:none;filter:none}
+.hero.on>.fade{transition-delay:0s}
+.hd{margin-bottom:32px}
+.hd p.lede{max-width:560px;margin:16px auto 0}
+/* HERO · H02 full-bleed scene behind big type */
+.hero{justify-content:center;padding-bottom:var(--bot)}
+.hero::before{background:radial-gradient(ellipse 60% 55% at 50% 56%,rgba(6,7,8,.62),rgba(6,7,8,.22) 60%,rgba(6,7,8,0) 100%),linear-gradient(180deg,rgba(6,7,8,0) 60%,rgba(6,7,8,.8))}
+.hero .c{margin-top:8vh}
+.hero h1{font-weight:200;font-size:clamp(56px,9.2vw,152px);line-height:.9;letter-spacing:-.06em;margin-top:24px}
+.hero h1 .w{font-weight:300;color:#fff}
+/* the signature: the sentence is "Make you disappear."; a proofreader's caret adds "r stuff" */
+.ins{position:relative;display:inline-block;width:0;height:0;vertical-align:baseline;text-align:left}
+.ins svg{position:absolute;left:-.02em;bottom:-.2em;width:.2em;height:.14em;overflow:visible}
+.ins svg path{fill:none;stroke:var(--acc);stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .7s var(--ease) 1.5s forwards}
+.ins-t{position:absolute;left:0;bottom:3em;font:italic 400 .22em/1 var(--sans);letter-spacing:0;color:#d8dbdf;white-space:nowrap;transform:translateX(-64%) rotate(-5deg);transform-origin:50% 100%;clip-path:inset(-20% 100% -20% 0);animation:write 1.1s cubic-bezier(.5,0,.3,1) 2.2s forwards}
+.ins-t::after{content:"";position:absolute;left:0;right:-2px;bottom:-.3em;height:1px;background:var(--acc);opacity:.9}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes write{to{clip-path:inset(-20% -4% -40% 0)}}
+.hero .sub1{max-width:520px;margin:32px auto 0}
+.hero .acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:40px}
+.hud{display:flex;justify-content:center;gap:64px;margin-top:56px}
+.hud div{font:400 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.hud b{display:block;font:300 28px/1.1 var(--sans);letter-spacing:-.02em;color:var(--ink);margin-bottom:8px}
+/* PREMISE */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);margin-top:48px;border-top:1px solid var(--line2);text-align:left}
+.facts div{padding:24px 24px 0 0}.facts div+div{padding-left:24px;border-left:1px solid var(--line)}
+.facts b{display:block;font:300 24px/1.2 var(--sans);letter-spacing:-.02em;color:var(--ink);margin-bottom:8px}
+.facts span{font-size:16px}
+/* SERVICE · S05 Movara cards: three depths, about the person */
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:left}
+.tier{position:relative;display:block;width:100%;text-align:left;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);color:inherit;font:inherit;padding:24px 32px 28px;cursor:default;transition:border-color .6s var(--ease),background .6s var(--ease)}
+.tier:hover,.tier:focus-visible{border-color:var(--line2);background:rgba(14,17,20,.92)}
+.tier::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:2px;background:var(--acc);transform:scaleY(0);transform-origin:top;transition:transform .7s var(--ease)}
+.tier:hover::before,.tier:focus-visible::before{transform:scaleY(1)}
+.tier .n{font:400 11px var(--mono);letter-spacing:.16em;color:var(--mute);display:flex;justify-content:space-between}
+.tier h3{font-weight:300;font-size:clamp(26px,2.4vw,34px);line-height:1.1;letter-spacing:-.03em;margin-top:12px;color:#fff}
+.tier .more p{padding-top:12px;font-size:16px}
+.tier .more .k{padding-top:16px;display:block}
+/* THE NIGHT: four marks on one line */
+.tl{list-style:none;padding:0;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line2);text-align:left}
+.tl li{position:relative;padding:24px 24px 0 0}
+.tl li::before{content:"";position:absolute;left:0;top:-3px;width:5px;height:5px;border-radius:50%;background:var(--acc)}
+.tl time{font:400 12px var(--mono);letter-spacing:.16em;color:var(--mute)}
+.tl b{display:block;font:300 24px/1.2 var(--sans);letter-spacing:-.02em;color:var(--ink);margin:8px 0}
+.tl span{font-size:16px}
+/* TERMS · the V12 panels (S02 dark logistics panel + P08 tiers) */
+#terms .c{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+#terms .hd,#terms .ref{grid-column:1/-1}#terms .hd{margin-bottom:16px}
+.panel{position:relative;padding:32px;background:linear-gradient(180deg,rgba(10,11,13,.86),rgba(7,8,10,.93));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);text-align:left;display:flex;flex-direction:column}
+.panel.push{border-color:var(--line2)}.panel.push::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:1px;background:var(--acc)}
+.panel .head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px}
+.panel h3{font-weight:200;font-size:clamp(32px,3vw,44px);line-height:1;letter-spacing:-.04em}
+.panel h3 span{display:block;font:400 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:12px}
+.panel p{margin-top:16px;font-size:16px}
+.panel ul{list-style:none;padding:0;margin:16px 0 24px;font-size:16px}
+.panel li{padding:10px 0;border-top:1px solid var(--line);display:flex;gap:16px}
+.panel li::before{content:"—";color:var(--mute)}
+.price{display:flex;justify-content:space-between;align-items:baseline;margin-top:auto;padding-top:16px;border-top:1px solid var(--line2)}
+.price b{font:300 28px/1 var(--sans);letter-spacing:-.02em;color:var(--ink)}
+/* STATEMENTS · the V12 redacted testimonials (T07), rewritten: the people left behind */
+#cases .c{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+#cases .hd{grid-column:1/-1;margin-bottom:16px}
+.case{background:rgba(9,10,12,.92);border:1px solid var(--line);display:flex;flex-direction:column;text-align:left;margin:0}
+.ph{position:relative;height:min(30vh,280px);overflow:hidden;background:#000;flex:none}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;display:block;filter:grayscale(1) contrast(1.15) brightness(.8)}
+.ph .bar{position:absolute;left:-4%;right:-4%;height:15%;background:#040506;transform:rotate(-1.5deg);box-shadow:0 0 0 1px rgba(255,255,255,.04)}
+.ph .lower{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(7,8,10,.85))}
+.ph svg.marks{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ph .no{position:absolute;left:12px;top:12px;font:400 10px var(--mono);letter-spacing:.2em;color:#e9edf2;background:rgba(5,5,6,.72);padding:4px 8px}
+.ph.sil{background:radial-gradient(circle at 50% 30%,#1d2024,#060607 70%)}
+.case .body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px;flex:1}
+.case blockquote{font:300 17px/1.4 var(--sans);color:var(--ink)}
+.case cite{font:400 10px/1.6 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute);font-style:normal;margin-top:auto}
+/* HOW IT WORKS reuses .tl · WHAT WE HANDLE · S23 feature cards */
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:left}
+.feat div{background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);padding:24px 24px 28px}
+.feat b{display:block;font:300 24px/1.2 var(--sans);letter-spacing:-.02em;color:var(--ink);margin:12px 0 8px}
+.feat span{font-size:16px}
+/* FAQ · P29 question list */
+.faq{display:grid;grid-template-columns:1fr 1fr;column-gap:48px;text-align:left;border-top:1px solid var(--line2)}
+.q{border-bottom:1px solid var(--line)}
+.q button{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;min-height:48px;padding:16px 0 0;background:none;border:0;color:var(--ink);font:300 22px/1.2 var(--sans);letter-spacing:-.02em;text-align:left;cursor:default}
+.q button i{display:none;position:relative;width:12px;height:12px;flex:none}.q button i::before,.q button i::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--mute);transition:transform .5s var(--ease)}.q button i::after{transform:rotate(90deg)}
+.q .a p{padding:8px 0 16px;font-size:16px;max-width:520px}
+/* CONTACT · C02 + F06 footer */
+.cta form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:32px auto 0;max-width:800px}
+.cta textarea{grid-column:2;grid-row:1/span 2;resize:none;padding:16px;line-height:1.5;height:100%;min-height:124px}
+.cta form .btn{grid-column:1/-1}
+.fword{display:none}
+.terms{font:400 13px/1.6 var(--sans);color:var(--mute);text-align:left;margin-top:16px;max-width:880px}
+.terms b{font-weight:400;color:var(--body)}
+.cta input,.cta select,.cta textarea{height:56px;background:rgba(6,7,8,.72);border:1px solid var(--line2);color:var(--ink);padding:0 16px;font:400 16px var(--sans);border-radius:0;appearance:none;-webkit-appearance:none;flex:1;min-width:0}
+.cta input::placeholder,.cta textarea::placeholder{color:var(--mute)}
+.cta .lede{max-width:480px;margin:24px auto 0}
+.cta .fine{margin-top:16px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:24px;margin-top:40px;font:400 11px var(--mono);letter-spacing:.12em;color:var(--mute);text-transform:uppercase;text-align:left}
+.foot a{text-decoration:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,200%);z-index:90;background:rgba(6,7,8,.95);border:1px solid var(--line2);color:var(--ink);padding:16px 24px;font:400 12px var(--mono);letter-spacing:.08em;transition:transform .7s var(--ease);max-width:calc(100vw - 32px);text-align:center}
+.toast.on{transform:translate(-50%,0)}
+/* short desktop screens (1024x768): keep each page inside one viewport */
+@media (min-width:901px) and (max-height:820px){
+  :root{--top:88px;--bot:56px}
+  .panel{padding:24px}.panel p{display:none}.panel .head{margin-bottom:16px}.panel ul{margin:16px 0}
+  .hd{margin-bottom:24px}.hud{margin-top:40px}.hero .acts{margin-top:32px}
+  .case blockquote{font-size:16px}.case .body{padding:16px 20px 20px;gap:12px}
+  .q button{font-size:20px;padding-top:12px}.q .a p{padding:4px 0 12px;font-size:15px}
+  .cta form{margin-top:24px}.foot{margin-top:24px;padding-top:16px}.cta .lede{margin-top:16px}
+}
+@media (min-width:901px) and (max-width:1180px){:root{--pad:40px}.links{gap:20px}.pill{gap:20px}.tier{padding:24px}.hud{gap:48px}}
+@media (hover:none) and (min-width:901px){.logo{min-height:44px}.links a{padding:14px 0}.pill .sw,.pill .btn{height:44px}}
+/* TABLET portrait and below: menu sheet, single column, terms split into one tier per snap page */
+@media (max-width:900px){
+  :root{--pad:40px;--top:96px;--bot:64px}
+  .links,.pill .sw{display:none}.menu{display:inline-flex}.pill{gap:16px;padding-right:6px}.logo{min-height:44px}.pill .btn{height:44px}
+  .hero .c{margin-top:14vh}.hero h1{font-size:clamp(56px,13vw,120px)}
+  .tiers{grid-template-columns:1fr;gap:8px}.tier{padding:16px 24px;cursor:pointer}.tier .more .k{padding-top:12px}
+  .tier .n{display:none}.tier h3{font-size:26px;margin-top:0;color:var(--mute)}
+  .tier .more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .7s var(--ease)}.tier .more>div{overflow:hidden}
+  .tier.open{padding:24px;border-color:var(--line2);background:rgba(14,17,20,.92)}.tier.open::before{transform:scaleY(1)}.tier.open .n{display:flex;margin-bottom:8px}.tier.open h3{font-size:32px;color:#fff}.tier.open .more{grid-template-rows:1fr}
+  .tl{grid-template-columns:1fr 1fr;row-gap:32px}
+  #terms{display:block;height:auto;padding:0;overflow:visible}#terms::before{display:none}
+  #terms .c{display:block;max-width:none;opacity:1;transform:none;filter:none}
+  #terms .sub{display:flex}#terms .sub::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(6,7,8,0) 22%,rgba(6,7,8,.74) 58%,rgba(6,7,8,.94))}
+  #terms .sub>.fade{opacity:0;transform:translateY(24px);filter:blur(8px)}#terms .sub.on>.fade{opacity:1;transform:none;filter:none;transition-delay:.35s}
+  #terms .sub>*{width:100%;max-width:600px}#terms .hd{margin-bottom:24px}
+  #cases .c{grid-template-columns:1fr 1fr}.ph{height:16vh}
+  .feat{grid-template-columns:1fr 1fr}
+  .faq{grid-template-columns:1fr}
+  .q button{cursor:pointer;padding:12px 0;min-height:56px}.q button i{display:block}.q.open button i::after{transform:rotate(0)}
+  .q .a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .6s var(--ease)}.q .a>div{overflow:hidden}.q.open .a{grid-template-rows:1fr}.q .a p{padding-top:0}
+  .cta form{max-width:600px}
+}
+/* PHONE: statements split into two snap pages, accordion tiers */
+@media (max-width:640px){
+  :root{--pad:24px;--top:88px;--bot:56px}
+  body{font-size:16px}
+  .page::before{background:linear-gradient(180deg,rgba(6,7,8,0) 12%,rgba(6,7,8,.8) 46%,rgba(6,7,8,.95))}
+  .pill{padding-left:20px;justify-content:space-between;width:100%}.pill>.btn{display:none}.logo{letter-spacing:.36em}
+  .k{letter-spacing:.12em}.kx{display:none}
+  .count{left:var(--pad);bottom:16px}.count i{width:40px}
+  h2{font-size:clamp(34px,10vw,44px)}
+  .hero{justify-content:flex-end}.hero .c{margin-top:0}
+  .hero::before{background:linear-gradient(180deg,rgba(6,7,8,0) 26%,rgba(6,7,8,.72) 54%,rgba(6,7,8,.94))}
+  .hero h1{font-size:clamp(56px,18vw,80px);margin-top:32px}
+  .ins-t{font-size:.25em}
+  .hero .sub1{margin-top:24px;max-width:34ch}.hero .acts{margin-top:24px}.hero .acts .btn{flex:1;padding:0 16px;height:52px}.hero .acts .ghost{display:none}
+  .hud{display:grid;grid-template-columns:repeat(3,auto);justify-content:space-between;gap:16px;margin-top:32px;border-top:1px solid var(--line);padding-top:16px;text-align:left}.hud b{font-size:24px}.hud div{letter-spacing:.08em}
+  .hd{margin-bottom:24px}
+  .facts{grid-template-columns:1fr;margin-top:24px}.facts div,.facts div+div{padding:12px 0;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr;gap:0}.facts div:first-child{border-top:0}.facts b{font-size:20px;margin-bottom:4px}
+  #premise .lede{display:none}
+  .tier{padding:12px 20px;cursor:pointer}.tier .n{display:none}.tier h3{font-size:22px;margin-top:0;color:var(--mute)}
+  .tier .more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .7s var(--ease)}.tier .more>div{overflow:hidden}
+  .tier.open{padding:16px 20px;border-color:var(--line2);background:rgba(14,17,20,.92)}.tier.open::before{transform:scaleY(1)}.tier.open .n{display:flex;margin-bottom:8px}.tier.open h3{font-size:26px;color:#fff}.tier.open .more{grid-template-rows:1fr}
+  .tier .more p{padding-top:8px}
+  .tl{grid-template-columns:1fr;row-gap:0;border-top:0}
+  .tl li{display:grid;grid-template-columns:64px 1fr;column-gap:16px;padding:12px 0;border-top:1px solid var(--line2)}.tl li::before{top:-3px}
+  .tl time{grid-row:1/span 2;padding-top:4px}.tl b{font-size:20px;margin:0 0 4px}
+  .panel{padding:24px}.panel h3{font-size:36px}
+  #cases{display:block;height:auto;padding:0;overflow:visible}#cases::before{display:none}
+  #cases .c{display:block;max-width:none;opacity:1;transform:none;filter:none}
+  #cases .sub{display:flex;gap:12px}#cases .sub::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(6,7,8,0) 16%,rgba(6,7,8,.74) 48%,rgba(6,7,8,.94))}
+  #cases .sub>.fade{opacity:0;transform:translateY(24px);filter:blur(8px)}#cases .sub.on>.fade{opacity:1;transform:none;filter:none;transition-delay:.35s}
+  #cases .sub>*{width:100%}#cases .hd{margin-bottom:12px}
+  .case{flex-direction:row}.ph{height:auto;width:112px;align-self:stretch}.ph .no{left:8px;top:8px;font-size:9px;letter-spacing:.1em;padding:3px 6px}
+  .case .body{padding:16px;gap:12px}.case blockquote{font-size:16px}
+  .feat{grid-template-columns:1fr;gap:8px}.feat div{padding:14px 20px 16px;display:grid;grid-template-columns:1fr;gap:0}.feat .k{display:none}.feat b{font-size:20px;margin:0 0 4px}
+  .q button{font-size:19px;min-height:52px}
+  #contact{display:block;height:auto;padding:0;overflow:visible}#contact::before{display:none}
+  #contact .c{display:block;max-width:none;opacity:1;transform:none;filter:none}
+  #contact .sub{display:flex}#contact .sub::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(6,7,8,0) 16%,rgba(6,7,8,.74) 48%,rgba(6,7,8,.94))}
+  #contact .sub>.fade{opacity:0;transform:translateY(24px);filter:blur(8px)}#contact .sub.on>.fade{opacity:1;transform:none;filter:none;transition-delay:.35s}
+  #contact .sub>*{width:100%}
+  .cta form{grid-template-columns:1fr;margin-top:20px}.cta textarea{grid-column:1;grid-row:auto;height:96px}.cta .lede{margin-top:12px}
+  .fword{display:block;font:200 30vw/.8 var(--sans);letter-spacing:-.07em;color:transparent;-webkit-text-stroke:1px rgba(238,240,242,.5);text-align:left;margin-left:-.04em;user-select:none}
+  .foot{margin-top:24px;padding-top:16px;flex-direction:column;align-items:flex-start;gap:8px}
+}
+@media (max-width:374px){:root{--pad:20px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;transition-delay:0s!important}}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas><div id="veil" aria-hidden="true"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="smear"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="26"/></filter>
+  <filter id="print"><feTurbulence type="turbulence" baseFrequency=".9" numOctaves="1" seed="2" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="1.6"/></filter>
+</defs></svg>
+<nav aria-label="Main"><div class="pill">
+  <a class="logo" href="#top"><i></i>LETHE</a>
+  <div class="links"><a href="#service">Service</a><a href="#terms">Fees</a><a href="#cases">Clients</a><a href="#how">How it works</a><a href="#faq">Questions</a></div>
+  <button class="sw" id="refsBtn" aria-pressed="false" title="References (R)">Refs</button>
+  <a class="btn" href="#contact">Request a consultation</a>
+  <button class="menu" id="menuBtn" aria-expanded="false" aria-controls="sheet"><span id="menuLbl">Menu</span><i></i></button>
+</div></nav>
+<div class="sheet" id="sheet" aria-label="Menu" inert>
+  <div class="sl"><a href="#service"><span>01</span>Service</a><a href="#terms"><span>02</span>Fees</a><a href="#cases"><span>03</span>Clients</a><a href="#how"><span>04</span>How it works</a><a href="#faq"><span>05</span>Questions</a></div>
+  <div class="sf"><a class="btn" href="#contact">Request a consultation</a><button class="sw" id="refsBtn2" aria-pressed="false">References</button></div>
+</div>
+<div class="count" aria-hidden="true"><b id="cNow">01</b><i id="cBar"></i><span id="cAll">10</span></div>
+
+<main>
+<section class="page hero on" id="top" data-snap data-beat="0"><div class="c fade">
+  <p class="k"><span class="kx">Lethe · </span>Private relocation · <b>by referral</b></p>
+  <h1 aria-label="Make your stuff disappear."><span aria-hidden="true">Make you<span class="ins"><svg viewBox="0 0 10 7" preserveAspectRatio="none"><path d="M0 7 L5 0 L10 7"/></svg><span class="ins-t">r stuff</span></span><br><span class="w">disappear.</span></span></h1>
+  <p class="sub1">A discreet fresh-start service. We move you, quietly, to a life that weighs less.</p>
+  <div class="acts"><a class="btn" href="#contact">Request a consultation</a><a class="btn ghost" href="#how">How it works</a></div>
+  <div class="hud"><div><b>1</b>Quiet night</div><div><b>1</b>Bag</div><div><b>0</b>Goodbyes</div></div>
+  <p class="ref">Nav N31 Skylan dark pill, centred · Hero H02 Manuport full-bleed scene behind big type · headline: proofreader's insertion mark · full-page section snap (GSAP Observer behaviour, rebuilt)</p>
+</div></section>
+
+<section class="page" id="premise" data-snap data-beat="1"><div class="c fade">
+  <p class="k">01 · The premise</p>
+  <h2>We free you <em>from your burden.</em></h2>
+  <p class="lede" style="max-width:600px;margin:24px auto 0">Some lives grow heavier than the person carrying them. We arrange a quiet departure and a lighter place to arrive. You decide what comes with you. Most people bring very little.</p>
+  <div class="facts"><div><b>Leave the weight behind.</b><span>Nothing needs to be packed. What stays can stay.</span></div><div><b>A quieter life, somewhere else.</b><span>A new address, chosen with you, far from the noise.</span></div><div><b>Handled discreetly.</b><span>No announcements. Your reasons stay your own.</span></div></div>
+  <p class="ref">Statement band over the lit window · interactive background: the window, the rain and the pointer parallax</p>
+</div></section>
+
+<section class="page" id="service" data-snap data-beat="2"><div class="c fade">
+  <div class="hd"><p class="k">02 · Three services</p><h2>How far would you like <em>to go?</em></h2></div>
+  <div class="tiers" id="tiers">
+    <button class="tier open"><span class="n"><span>SERVICE I</span><span>ONE EVENING</span></span><h3>The Night Move.</h3><div class="more"><div><p>One quiet evening. Our team arrives at an hour you choose and travels with you, door to door.</p><span class="k">One night · three staff · light luggage</span></div></div></button>
+    <button class="tier"><span class="n"><span>SERVICE II</span><span>A NEW HOME</span></span><h3>The New Address.</h3><div class="more"><div><p>A home is prepared in a region you choose. Keys, utilities and introductions are arranged before you arrive.</p><span class="k">Relocation · settling in · first year</span></div></div></button>
+    <button class="tier"><span class="n"><span>SERVICE III</span><span>A FRESH START</span></span><h3>The Clean Slate.</h3><div class="more"><div><p>A complete change of pace. We help you close one chapter in good order, so nothing follows you but your own plans.</p><span class="k">By referral · one adviser throughout</span></div></div></button>
+  </div>
+  <p class="ref">Services S05 Movara cards (tablet and phone: Cult UI expandable cards) · scene: our team at the door</p>
+</div></section>
+
+<section class="page" id="night" data-snap data-beat="3"><div class="c fade">
+  <div class="hd"><p class="k">03 · The evening</p><h2>One <em>quiet night.</em></h2></div>
+  <ol class="tl">
+    <li><time>01:00</time><b>The door</b><span>Our team arrives at the hour you chose. Calm and unhurried.</span></li>
+    <li><time>01:10</time><b>One bag</b><span>Bring what matters to you. The rest can stay, or follow later.</span></li>
+    <li><time>01:25</time><b>The car</b><span>A private vehicle, door to door. You can rest on the way.</span></li>
+    <li><time>DAWN</time><b>A new address</b><span>Somewhere quiet. The keys are already in the door.</span></li>
+  </ol>
+  <p class="ref">Timeline S02 Logistics-Lion dark panel, flattened to four marks · scene: the walk to the car, in slow motion while the page rests</p>
+</div></section>
+
+<section class="page" id="terms" data-snap data-beat="4"><div class="c fade">
+  <div class="sub" data-snap data-beat="4">
+    <div class="hd fade"><p class="k">04 · Fees</p><h2>One fee. <em>No surprises.</em></h2></div>
+    <article class="panel fade"><div class="head"><span class="k">Service I</span><span class="k">One evening</span></div><h3><span>Door to door</span>The Night Move.</h3><p>A private transfer at the hour you choose. Travel light; we look after the journey.</p><ul><li>Three staff, one private vehicle</li><li>Your home is left as you wish</li><li>Flexible, discreet scheduling</li></ul><div class="price"><span class="k">From</span><b>€ 9,400</b></div></article>
+  </div>
+  <div class="sub" data-snap data-beat="4.35">
+    <article class="panel push fade"><div class="head"><span class="k"><b>Service II</b></span><span class="k"><b>Most requested</b></span></div><h3><span>A home, prepared in advance</span>The New Address.</h3><p>Somewhere to arrive. A home found, furnished and ready, in a region you choose.</p><ul><li>Home search and set-up</li><li>Utilities and registrations filed</li><li>Aftercare for one year</li></ul><div class="price"><span class="k">From</span><b>€ 28,000</b></div></article>
+  </div>
+  <div class="sub" data-snap data-beat="4.7">
+    <article class="panel fade"><div class="head"><span class="k">Service III</span><span class="k">By referral</span></div><h3><span>A complete change of pace</span>The Clean Slate.</h3><p>A dedicated adviser helps you close one chapter in good order and open the next.</p><ul><li>Accounts and contracts closed properly</li><li>One adviser, start to finish</li><li>Privacy by default</li></ul><div class="price"><span class="k">Fee</span><b>On request</b></div></article>
+    <p class="ref">Pricing: the V12 panels (S02 dark logistics panel + P08 Landing Play tiers) · scene: the car leaves, the street light goes out</p>
+  </div>
+</div></section>
+
+<section class="page" id="cases" data-snap data-beat="5"><div class="c fade" id="caseGrid"></div></section>
+
+<section class="page" id="how" data-snap data-beat="6"><div class="c fade">
+  <div class="hd"><p class="k">06 · How it works</p><h2>Four <em>calm steps.</em></h2></div>
+  <ol class="tl">
+    <li><time>01</time><b>A private consultation</b><span>We listen. You tell us what has become too heavy. Nothing is decided in the first conversation.</span></li>
+    <li><time>02</time><b>The plan</b><span>A date, a destination, a short list of what comes with you. Agreed with you, in writing.</span></li>
+    <li><time>03</time><b>The night</b><span>Our team arrives. You travel light, and you travel comfortably.</span></li>
+    <li><time>04</time><b>The new beginning</b><span>A door, a key, a quiet street. We stay in touch for as long as you want us to.</span></li>
+  </ol>
+  <p class="ref">How it works S06 Logistics Service process row · scene: the room, the table as it was left</p>
+</div></section>
+
+<section class="page" id="handle" data-snap data-beat="7"><div class="c fade">
+  <div class="hd"><p class="k">07 · What we handle</p><h2>Leave the <em>details to us.</em></h2></div>
+  <div class="feat">
+    <div><span class="k">A</span><b>Logistics</b><span>Transport, timing, luggage and keys. One team, one evening.</span></div>
+    <div><span class="k">B</span><b>Discretion</b><span>We publish no client list and we do not discuss our work.</span></div>
+    <div><span class="k">C</span><b>The new address</b><span>A home chosen with you, and ready when you arrive.</span></div>
+    <div><span class="k">D</span><b>Aftercare</b><span>A named adviser for the first year. Call when you need to.</span></div>
+  </div>
+  <p class="ref">What we handle S23 cal.com feature cards · scene: the lamp goes out, the window stays</p>
+</div></section>
+
+<section class="page" id="faq" data-snap data-beat="8"><div class="c fade">
+  <div class="hd"><p class="k">08 · Questions</p><h2>Questions, <em>quietly answered.</em></h2></div>
+  <div class="faq" id="faqList">
+    <div class="q open"><button aria-expanded="true">Who uses Lethe?<i></i></button><div class="a"><div><p>Adults who want a calmer life and would rather not make an event of leaving. Every client comes to us by their own choice.</p></div></div></div>
+    <div class="q"><button aria-expanded="false">Is this legal?<i></i></button><div class="a"><div><p>Yes. We are a relocation service. Every arrangement is lawful, and we decline requests that are not.</p></div></div></div>
+    <div class="q"><button aria-expanded="false">What should I bring?<i></i></button><div class="a"><div><p>Whatever matters to you. Most clients bring one bag. The rest can follow later, if you wish.</p></div></div></div>
+    <div class="q"><button aria-expanded="false">Will anyone be told?<i></i></button><div class="a"><div><p>Only the people you choose. Your privacy is the service, and your data is handled under privacy law.</p></div></div></div>
+    <div class="q"><button aria-expanded="false">Can I change my mind?<i></i></button><div class="a"><div><p>At any point, including on the night. You are also free to return whenever you like. It is your life.</p></div></div></div>
+    <div class="q"><button aria-expanded="false">Why at night?<i></i></button><div class="a"><div><p>The roads are empty and nobody's day is interrupted. Some departures are simply better without goodbyes.</p></div></div></div>
+  </div>
+  <p class="ref">FAQ: the moodboard has no FAQ category; closest kept reference P29 linear.app pricing page question list · scene: dawn, somewhere else</p>
+</div></section>
+
+<section class="page cta" id="contact" data-snap data-beat="9"><div class="c fade">
+  <div class="sub" data-snap data-beat="9">
+    <div class="fade"><p class="k">09 · Consultation</p>
+    <h2>A new beginning, <em>handled discreetly.</em></h2>
+    <p class="lede">Tell us a little. An adviser will call you once, at a time you choose.</p>
+    <form id="form"><input name="name" aria-label="Your name" placeholder="What should we call you?" autocomplete="off"><input name="reach" aria-label="A way to reach you" placeholder="A way to reach you"><textarea name="leave" aria-label="What would you leave behind?" placeholder="What would you leave behind?"></textarea><button class="btn">Request a consultation</button></form>
+    <p class="k fine">Confidential · deleted on request</p>
+    <p class="ref">CTA C02 The Funded Bettor call-to-action (copy over form) · Footer F06 dark footer · scene: the new address at dawn</p></div>
+  </div>
+  <div class="sub" data-snap data-beat="9.4">
+    <div class="fade"><p class="fword" aria-hidden="true">LETHE</p>
+    <div class="foot"><span>© Lethe · placeholder brand, class exercise</span><span>A quieter life, somewhere else</span><span>Press R for references</span></div>
+    <p class="terms"><b>Terms.</b> Lethe provides lawful relocation and settling-in services to consenting adults only. Every engagement is voluntary, agreed in writing, and can be cancelled by the client at any time. We do not act for anyone other than the client, and we decline any request that is not lawful.</p></div>
+  </div>
+</div></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="r4.js"></script>
+<script>
+(function(){
+const {rm,small,createStage,seg,clamp01,loop,refs,toast,NOISE}=R4;
+const FREEZE=/[?&]freeze/.test(location.search); // test mode: no idle motion, no rain motion, no grain
+const $=id=>document.getElementById(id);
+
+/* ---------- kind words: the V12 cards, rewritten. Stock portraits, eyes covered; the quotes are fiction ---------- */
+const CASES=[
+ {img:'media/p1.jpg',eye:44,no:'FILE 0388',who:'A landlord',q:'The rent was settled in full and the keys came back by post. A very tidy tenant, right to the end.'},
+ {img:'media/p3.jpg',eye:39,no:'FILE 0412',who:'A neighbour',q:'One evening there was a car outside. Next morning the curtains were open. I hope she is well.'},
+ {img:'media/p2.jpg',eye:40,no:'FILE 0417',who:'A relative',q:'We received a card. It said she was happy and not to worry. So we try not to.'},
+ {sil:1,no:'FILE 0001',who:'A client',q:'“I sleep. That is the review.”'}];
+function marks(i){const r=n=>((Math.sin(i*91.7+n*13.3)+1)/2);let fp='';for(let k=0;k<9;k++)fp+=`<ellipse cx="0" cy="0" rx="${6+k*3.2}" ry="${8+k*4}" fill="none" stroke="rgba(150,34,27,.6)" stroke-width="1.1"/>`;
+ return `<svg class="marks" viewBox="0 0 400 500" preserveAspectRatio="none" aria-hidden="true"><g filter="url(#smear)" opacity=".5"><path d="M${40+r(1)*200} ${330+r(2)*80} q 40 -30 90 -6 t 110 10 q -30 26 -100 18 t -100 -22z" fill="#5a1611"/></g>
+  <g transform="translate(${300-r(3)*80} ${390+r(4)*40}) rotate(${r(5)*60-30})" filter="url(#print)">${fp}</g></svg>`}
+const card=(c,i)=>`<figure class="case fade"><div class="ph ${c.sil?'sil':''}">${c.sil?`<svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><path d="M200 120c46 0 70 36 70 82 0 34-16 58-34 72 52 14 108 44 128 110v116H36V384c20-66 76-96 128-110-18-14-34-38-34-72 0-46 24-82 70-82z" fill="#0d0e10"/></svg>`:`<img src="${c.img}" alt="Portrait, eyes covered for privacy"><span class="bar" style="top:${c.eye-7}%"></span>`}<div class="lower"></div>${marks(i)}<span class="no">${c.no}</span></div>
+ <div class="body"><blockquote>${c.sil?c.q:'“'+c.q+'”'}</blockquote><cite>${c.who} · shared with permission</cite></div></figure>`;
+$('caseGrid').innerHTML=`<div class="sub" data-snap data-beat="5"><div class="hd fade"><p class="k">05 · Kind words<span class="kx"> · names withheld on request</span></p><h2>Kind words, <em>few names.</em></h2></div>${card(CASES[0],0)}${card(CASES[1],1)}</div>
+ <div class="sub" data-snap data-beat="5.4">${card(CASES[2],2)}${card(CASES[3],3)}<p class="ref" style="grid-column:1/-1">Testimonials: the V12 redacted cards (T07 avatar testimonials) · portraits: Mixkit stills, eyes covered · marks: SVG turbulence</p></div>`;
+
+refs();
+$('form').addEventListener('submit',e=>{e.preventDefault();toast('Received. An adviser will be in touch.');e.target.reset()});
+const qs=[...document.querySelectorAll('.q')];qs.forEach(q=>q.querySelector('button').addEventListener('click',()=>qs.forEach(x=>{const on=x===q&&!(x.classList.contains('open')&&matchMedia('(max-width:900px)').matches);x.classList.toggle('open',on);x.querySelector('button').setAttribute('aria-expanded',on)})));
+const tiers=[...document.querySelectorAll('.tier')];tiers.forEach(t=>t.addEventListener('click',()=>tiers.forEach(x=>x.classList.toggle('open',x===t))));
+
+/* ---------- section snap: one gesture = exactly one page ---------- */
+let P=[],idx=0,lock=false,armed=true,lastWheel=0,lastMag=0;
+const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+function build(){const m=new Map();document.querySelectorAll('[data-snap]').forEach(e=>{if(!e.getClientRects().length)return;const top=Math.round(e.getBoundingClientRect().top+scrollY);m.set(top,{el:e,top,beat:+e.dataset.beat})});P=[...m.values()].sort((a,b)=>a.top-b.top)}
+function mark(){P.forEach((p,k)=>p.el.classList.toggle('on',k===idx));const cur=P[idx].el.closest('.page');document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s===cur));
+ $('cNow').textContent=String(idx+1).padStart(2,'0');$('cAll').textContent=String(P.length).padStart(2,'0');$('cBar').style.setProperty('--p',(P.length>1?idx/(P.length-1):0).toFixed(3));
+ document.querySelectorAll('.links a').forEach(a=>a.classList.toggle('cur',a.getAttribute('href')==='#'+cur.id))}
+function go(i,instant){i=Math.max(0,Math.min(P.length-1,i));if(i===idx&&!instant)return false;const from=scrollY,to=P[i].top;idx=i;mark();
+ if(instant||rm){scrollTo(0,to);kick();return true}
+ lock=true;const t0=performance.now(),T=1000;(function step(now){const k=Math.min(1,(now-t0)/T);scrollTo(0,from+(to-from)*ease(k));if(k<1)requestAnimationFrame(step);else{scrollTo(0,to);setTimeout(()=>lock=false,60)}})(t0);return true}
+const firstIn=sec=>P.findIndex(p=>p.el===sec||sec.contains(p.el));
+// wheel: one page per gesture. A trackpad's momentum tail cannot trigger a second page: the wheel re-arms after 200 ms of silence only if the next delta is not smaller than the last one (a tail only decays, even when frames stall), or after 700 ms of silence.
+addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;e.preventDefault();const now=performance.now(),gap=now-lastWheel,mag=Math.abs(e.deltaY);if(gap>700||(gap>200&&mag>=lastMag))armed=true;lastWheel=now;lastMag=mag;if(lock||!armed||mag<4)return;armed=false;go(idx+(e.deltaY>0?1:-1))},{passive:false});
+// touch: one swipe = one page
+let ty=null;addEventListener('touchstart',e=>{ty=e.target.closest('.sheet')?null:e.touches[0].clientY},{passive:true});
+addEventListener('touchmove',e=>{if(ty!==null)e.preventDefault()},{passive:false});
+addEventListener('touchend',e=>{if(ty===null)return;const dy=ty-e.changedTouches[0].clientY;ty=null;if(!lock&&Math.abs(dy)>44)go(idx+(dy>0?1:-1))});
+addEventListener('keydown',e=>{if(/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key;let d=0;
+ if(k==='ArrowDown'||k==='PageDown'||(k===' '&&!e.shiftKey&&e.target.tagName!=='BUTTON'))d=1;else if(k==='ArrowUp'||k==='PageUp'||(k===' '&&e.shiftKey))d=-1;else if(k==='Home'){e.preventDefault();if(!lock)go(0);return}else if(k==='End'){e.preventDefault();if(!lock)go(P.length-1);return}else return;
+ e.preventDefault();if(!lock)go(idx+d)});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;const sec=document.querySelector(a.getAttribute('href'));if(!sec)return;e.preventDefault();const i=firstIn(sec);if(i>=0&&!lock)go(i)});
+document.addEventListener('focusin',e=>{if(lock||e.target.closest('nav,.sheet'))return;for(let k=P.length-1;k>=0;k--)if(P[k].el.contains(e.target)){if(k!==idx)go(k,true);return}});
+addEventListener('scroll',()=>{if(!lock&&P[idx]&&Math.abs(scrollY-P[idx].top)>1)scrollTo(0,P[idx].top)},{passive:true}); // nothing may leave a page resting between two tops
+addEventListener('resize',()=>{const sec=P[idx]&&P[idx].el.closest('.page'),was=P[idx]&&P[idx].el;build();let i=P.findIndex(p=>p.el===was);if(i<0&&sec)i=firstIn(sec);idx=Math.max(0,i);mark();scrollTo(0,P[idx].top)});
+if('scrollRestoration' in history)history.scrollRestoration='manual';
+/* mobile nav sheet */
+{const mb=$('menuBtn'),sh=$('sheet'),r1=$('refsBtn'),r2=$('refsBtn2');
+ const setMenu=on=>{sh.classList.toggle('open',on);sh.inert=!on;mb.setAttribute('aria-expanded',on);$('menuLbl').textContent=on?'Close':'Menu'};
+ mb.addEventListener('click',()=>setMenu(!sh.classList.contains('open')));sh.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));
+ addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});addEventListener('resize',()=>{if(innerWidth>900)setMenu(false)});
+ r2.addEventListener('click',()=>{r1.click();r2.setAttribute('aria-pressed',document.body.classList.contains('refs'));setMenu(false)})}
+
+/* ---------- stage ---------- */
+const canvas=$('gl');
+const stage=createStage(canvas,{tint:[.93,.97,1.05],ca:.8,grain:FREEZE?0:.075,vignette:1.15,clear:0x050608});
+if(FREEZE)stage.budget=()=>{}; // test mode: fixed resolution, so two frames of one page can be compared
+const R=stage.renderer;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene(),fogN=new THREE.Color(0x06080a),fogD=new THREE.Color(0x2a323c);scene.fog=new THREE.FogExp2(fogN.clone(),.04);
+const cam=new THREE.PerspectiveCamera(40,1,.2,420);
+let aspect=1,tall=0;stage.onResize=(w,h)=>{aspect=w/h;tall=clamp01((1.05-aspect)/.5);cam.aspect=aspect;cam.fov=aspect<.8?56:aspect<1.2?48:40;cam.updateProjectionMatrix()};
+// Lambert everywhere (cheap with this many lights); only the wet road is a PBR material, for its highlights
+const mat=(c,o)=>{o=Object.assign({},o);if(o.std){delete o.std;return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.92,metalness:0,flatShading:true},o))}delete o.roughness;return new THREE.MeshLambertMaterial(Object.assign({color:c,flatShading:true},o))};
+const basic=(r,g,b,o)=>new THREE.MeshBasicMaterial(Object.assign({color:new THREE.Color(r,g,b)},o||{}));
+const add=(geo,m,x,y,z,parent)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);(parent||scene).add(o);return o};
+const box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+const cast=o=>{o.traverse(m=>{if(m.isMesh&&(m.material.isMeshLambertMaterial||m.material.isMeshStandardMaterial))m.castShadow=true});return o};
+function glowTex(){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),g=x.createRadialGradient(128,128,0,128,128,128);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.42)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,256,256);return new THREE.CanvasTexture(c)}
+const GT=glowTex();
+const glow=(x,y,z,s,r,g,b,parent,o)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial(Object.assign({map:GT,color:new THREE.Color(r,g,b),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true},o||{})));sp.position.set(x,y,z);sp.scale.set(s,s,1);(parent||scene).add(sp);return sp};
+
+/* the street */
+const hemi=new THREE.HemisphereLight(0x8fa3c4,0x07090c,.5);scene.add(hemi);{const d=new THREE.DirectionalLight(0x9fb4d8,.28);d.position.set(-4,6,8);scene.add(d)}
+const ground=add(new THREE.PlaneGeometry(160,60),mat(0x0b0d11,{std:1,roughness:.5,flatShading:false}),10,0,4);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;
+add(box(160,.14,2.5),mat(0x14171b,{roughness:.75}),10,.07,-4.85).receiveShadow=true;
+const WX=-2.4,WY=4.6; // the lit window
+add(box(60,12,.6),mat(0x0f1215),6,6,-6.3).receiveShadow=true;
+{const dark=basic(.02,.026,.034),frame=mat(0x07080a);
+ for(const y of [4.6,7.7])for(const x of [-10.2,-7.6,-5,-2.4,2.8,5.4,8,10.6,13.2]){if(x===WX&&y===WY)continue;add(new THREE.PlaneGeometry(1.5,1.9),dark,x,y,-5.99);add(box(1.7,.08,.12),frame,x,y-1.0,-5.96)}
+ for(const x of [-7.6,-5,5.4,8,10.6])add(new THREE.PlaneGeometry(1.5,1.5),dark,x,1.75,-5.99)}
+// the lit window: mullions, and someone standing in it until the team goes in
+const lit=add(new THREE.PlaneGeometry(1.6,1.9),basic(.62,.68,.78),WX,WY,-5.985);
+{const f=mat(0x050607);add(box(.05,1.9,.05),f,WX,WY,-5.95);add(box(1.6,.05,.05),f,WX,WY+.25,-5.95);add(box(1.8,.09,.14),f,WX,WY-1.0,-5.94)}
+const winGlow=glow(WX,WY,-5.7,5.2,.34,.4,.5);
+const winLight=new THREE.PointLight(0xd6e2ff,.9,9,1.6);winLight.position.set(WX,WY,-5.2);scene.add(winLight);
+const shade=new THREE.Shape();shade.moveTo(-.3,-.95);shade.lineTo(-.3,-.25);shade.quadraticCurveTo(-.3,.02,-.12,.08);shade.lineTo(-.12,.16);shade.absarc(0,.3,.15,Math.PI*1.25,-Math.PI*.25,true);shade.lineTo(.12,.08);shade.quadraticCurveTo(.3,.02,.3,-.25);shade.lineTo(.3,-.95);
+const sil=add(new THREE.ShapeGeometry(shade),basic(.03,.036,.045,{transparent:true}),WX+.2,WY,-5.975);
+// the front door
+add(new THREE.PlaneGeometry(1.3,2.4),basic(.012,.014,.018),0,1.34,-5.99);
+const doorIn=add(new THREE.PlaneGeometry(1.2,2.3),basic(.5,.56,.66,{transparent:true,opacity:0}),0,1.3,-5.975);
+const door=new THREE.Group();door.position.set(-.6,.14,-5.93);scene.add(door);add(box(1.2,2.3,.06),mat(0x1a1e23),.6,1.15,0,door);cast(door);
+add(box(1.6,.1,.5),mat(0x14171b),0,2.62,-5.8);
+const doorLight=new THREE.PointLight(0xdfe8ff,0,7,1.6);doorLight.position.set(0,2.2,-5.3);scene.add(doorLight);
+// the one street lamp: a soft point light plus a shadow-casting spot
+{const m=mat(0x0a0c0e);add(new THREE.CylinderGeometry(.06,.08,5.6,6),m,-4.2,2.8,-3.5);add(box(.9,.07,.07),m,-3.8,5.56,-3.5);add(box(.5,.1,.22),m,-3.4,5.5,-3.5)}
+const lampGlow=glow(-3.4,5.4,-3.5,2.6,.6,.68,.82);
+const lamp=new THREE.PointLight(0xcfdfff,1.0,24,1.3);lamp.position.set(-3.4,5.3,-3.4);scene.add(lamp);
+const spot=new THREE.SpotLight(0xcfdfff,2.4,28,1.1,.7,1.1);spot.position.set(-3.4,5.3,-3.3);spot.target.position.set(.8,0,-4.2);scene.add(spot,spot.target);
+spot.castShadow=true;spot.shadow.mapSize.set(small?1024:2048,small?1024:2048);spot.shadow.bias=-.002;spot.shadow.camera.near=1;spot.shadow.camera.far=26;spot.shadow.radius=3;
+const coneU={uA:{value:1}};
+add(new THREE.CylinderGeometry(.12,2.6,5.4,40,1,true),new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,uniforms:coneU,
+ vertexShader:'varying float vY;varying vec3 vN;varying vec3 vV;void main(){vY=uv.y;vec4 w=modelMatrix*vec4(position,1.);vN=normalize(mat3(modelMatrix)*normal);vV=normalize(cameraPosition-w.xyz);gl_Position=projectionMatrix*viewMatrix*w;}',
+ fragmentShader:'varying float vY;varying vec3 vN;varying vec3 vV;uniform float uA;void main(){float f=pow(abs(dot(vN,vV)),1.6);gl_FragColor=vec4(vec3(.55,.62,.74)*f*vY*vY*.16*uA,1.);}'}),-3.4,2.7,-3.5);
+
+/* the car: a plain van. It arrives, waits at the kerb, and leaves */
+const van=new THREE.Group();scene.add(van);const VZ=-2.3,VX0=3.2;
+{const b=mat(0x15191e,{roughness:.55}),d=mat(0x090b0d);
+ add(box(2.8,1.75,1.75),b,-.6,1.28,0,van);add(box(1.3,1.25,1.7),b,1.45,1.03,0,van);add(box(.5,.55,1.6),basic(.03,.04,.05),1.92,1.42,0,van);add(box(4.1,.2,1.7),d,0,.42,0,van);
+ add(new THREE.PlaneGeometry(1.6,1.5),basic(.008,.01,.012),-2.005,1.3,0,van).rotation.y=-Math.PI/2}
+const wheels=[];{const g=new THREE.CylinderGeometry(.34,.34,.24,16);g.rotateX(Math.PI/2);const m=mat(0x060708);for(const x of [-1.25,1.35])for(const z of [-.82,.82])wheels.push(add(g,m,x,.34,z,van))}
+const vdoors=[-1,1].map(s=>{const g=new THREE.Group();g.position.set(-2.01,1.3,s*.86);van.add(g);add(box(.04,1.5,.84),mat(0x15191e,{roughness:.55}),0,0,-s*.42,g);return g});cast(van);
+const tailM=basic(.5,.06,.05);for(const z of [-.74,.74])add(box(.05,.26,.14),tailM,-2.03,.72,z,van);
+const tailGlow=[-.74,.74].map(z=>glow(-2.1,.72,z,.9,.5,.05,.04,van));
+const tailLight=new THREE.PointLight(0xff2a1e,.5,7,1.5);tailLight.position.set(-2.6,.8,0);van.add(tailLight);
+const headGlow=[-.6,.6].map(z=>glow(2.14,.78,z,1.1,.5,.56,.66,van));
+const headLight=new THREE.SpotLight(0xd8e4ff,0,34,.62,.6,1.2);headLight.position.set(2.2,.9,0);headLight.target.position.set(12,.2,-1.2);van.add(headLight,headLight.target); // aimed slightly at the facade, so the beam sweeps the building as the van pulls in
+
+/* low-poly people: three of our team, and the client */
+function person(o){const g=new THREE.Group(),m=o.mat;const lg=box(.15,.86,.17);lg.translate(0,-.43,0);const L=add(lg,m,-.1,.88,0,g),Rr=add(lg,m,.1,.88,0,g);
+ add(new THREE.CylinderGeometry(.19,o.coat?.3:.24,o.coat?1.02:.64,9),m,0,o.coat?.98:1.18,0,g);add(box(.54,.15,.25),m,0,1.45,0,g);
+ const ag=box(.11,.62,.12);ag.translate(0,-.31,0);const aL=add(ag,m,-.31,1.47,0,g),aR=add(ag,m,.31,1.47,0,g);
+ if(o.bag){const bg=add(new THREE.CylinderGeometry(.16,.2,.42,9),o.bagMat,0,1.66,0,g);bg.rotation.z=.05;aL.rotation.x=aR.rotation.x=.35;aL.rotation.z=-.12;aR.rotation.z=.12}
+ else{const h=add(new THREE.IcosahedronGeometry(.13,2),m,0,1.68,0,g);h.scale.set(.92,1.12,1);if(o.maskMat){const mk=add(new THREE.SphereGeometry(.125,16,12),o.maskMat,0,1.675,.062,g);mk.scale.set(.8,1.12,.55)}}
+ g.userData={L,R:Rr,aL,aR,bag:o.bag};cast(g);scene.add(g);return g}
+const crewMat=mat(0x15181c),maskMat=mat(0xb4bcc6,{roughness:.6,flatShading:false}),clientMat=mat(0x4a5159),bagMat=mat(0x8f969e,{roughness:1});
+const crewA=person({mat:crewMat,maskMat,coat:1}),crewB=person({mat:crewMat,maskMat,coat:1}),crewC=person({mat:crewMat,maskMat,coat:1}),client=person({mat:clientMat,bag:1,bagMat});
+const duffel=add(box(.24,.26,.56),mat(0x23282e),.36,.72,.02,crewA);
+// paths: [u, x, z, facing (optional, used while standing)]. Hidden outside the first/last key, and while inside the building.
+const PATH={
+ a:[[.9,1.0,-2.9],[1.9,-.55,-5.0,Math.PI],[2.1,-.55,-5.0,Math.PI],[2.3,-.1,-6.4],[2.5,-.1,-6.4],[2.65,-.45,-5.3],[3.25,.75,-3.2],[3.42,1.0,-2.7]],
+ b:[[.95,1.1,-2.5],[1.95,.6,-4.9,Math.PI],[2.12,.6,-4.9,Math.PI],[2.32,.15,-6.4],[2.52,.15,-6.4],[2.67,.5,-5.2],[3.27,1.55,-3.0],[3.44,1.1,-2.5]],
+ t:[[2.5,0,-6.4],[2.66,.02,-5.25],[3.26,1.15,-3.1],[3.43,1.05,-2.6]],
+ c:[[1.0,1.2,-2.2],[1.9,.2,-4.2,-.55],[2.3,.2,-4.2,-.55],[2.7,1.9,-3.45,-2.2],[3.4,1.9,-3.45,-2.2],[3.5,1.2,-2.5]]};
+function place(g,k,u,dt){const a=k[0],z=k[k.length-1];if(u<a[0]||u>z[0]){g.visible=false;return}let i=0;while(i<k.length-2&&u>=k[i+1][0])i++;const p=k[i],q=k[i+1],t=clamp01((u-p[0])/(q[0]-p[0]));
+ const x=p[1]+(q[1]-p[1])*t,zz=p[2]+(q[2]-p[2])*t,len=Math.hypot(q[1]-p[1],q[2]-p[2]);g.visible=zz>-6.02;
+ g.position.set(x,zz<-3.6?.14:0,zz);const moving=len>.01,face=moving?Math.atan2(q[1]-p[1],q[2]-p[2]):(p[3]!==undefined?p[3]:g.rotation.y);
+ let d=face-g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));g.rotation.y+=d*(dt<0?1:Math.min(1,dt*7));
+ const ph=moving?Math.sin(Math.PI*Math.max(1,Math.round(len*1.7))*t)*(g.userData.bag?.3:.46):0,U=g.userData;U.L.rotation.x=ph;U.R.rotation.x=-ph;if(!U.bag){U.aL.rotation.x=-ph*.7;U.aR.rotation.x=ph*.7}
+ g.position.y+=Math.abs(ph)*.035}
+
+/* the room behind the lit window: left exactly as it was */
+const room=new THREE.Group();scene.add(room);
+{const wall=mat(0x23272c,{side:THREE.BackSide,flatShading:false});add(box(4.6,3.0,4.6),wall,WX,4.9,-9.0,room);
+ const wood=mat(0x1c1f23),sheet=mat(0x8a919a,{flatShading:false,roughness:1}),pale=mat(0xc9d0d8,{roughness:.5,flatShading:false});
+ add(box(1.25,.3,2.2),wood,-4.0,3.55,-9.9,room);add(box(1.2,.16,2.15),mat(0x5b626a),-4.0,3.78,-9.9,room);
+ const dv=new THREE.PlaneGeometry(1.5,1.7,48,48);{const p=dv.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,Math.sin(x*5.3+y*2.1)*.07+Math.sin(y*7.7-x*3.1)*.05+Math.max(0,x-.2)*.5*Math.sin(y*2+1.2)+.06)}dv.computeVertexNormals()}
+ const duvet=add(dv,sheet,-3.75,3.9,-9.55,room);duvet.rotation.set(-Math.PI/2,0,.22);duvet.material.side=THREE.DoubleSide;
+ add(box(.7,.14,.42),pale,-4.05,3.94,-10.7,room).rotation.set(.06,.25,.04);
+ add(box(1.1,.05,.62),wood,-1.2,4.14,-9.9,room);for(const [x,z] of [[-.5,-.26],[.5,-.26],[-.5,.26],[.5,.26]])add(box(.05,.72,.05),wood,-1.2+x,3.77,-9.9+z,room);
+ add(new THREE.CylinderGeometry(.045,.038,.095,20),pale,-1.38,4.215,-9.82,room);add(box(.2,.012,.14),mat(0xa9b0b8),-.98,4.172,-10.0,room).rotation.y=.3;
+ const ch=new THREE.Group();ch.position.set(-1.75,3.4,-9.25);ch.rotation.y=.9;room.add(ch);add(box(.42,.04,.42),wood,0,.46,0,ch);add(box(.42,.5,.04),wood,0,.72,-.19,ch);for(const [x,z] of [[-.18,-.18],[.18,-.18],[-.18,.18],[.18,.18]])add(box(.04,.46,.04),wood,x,.23,z,ch);
+ add(box(.1,.035,.26),mat(0x596069),-3.2,3.42,-9.1,room).rotation.y=.2;add(box(.1,.035,.26),mat(0x596069),-3.02,3.42,-9.3,room).rotation.y=-.5;
+ add(new THREE.CylinderGeometry(.006,.006,.5,4),wood,-2.3,6.15,-9.3,room);add(new THREE.CylinderGeometry(.05,.24,.2,20,1,true),mat(0x2a2e33,{side:THREE.DoubleSide,flatShading:false}),-2.3,5.86,-9.3,room);
+ // the window, seen from inside
+ add(new THREE.PlaneGeometry(1.6,1.9),basic(.4,.46,.56),WX,WY,-6.71,room).rotation.y=Math.PI;const f=basic(.02,.024,.03);add(box(.05,1.9,.03),f,WX,WY,-6.73,room);add(box(1.6,.05,.03),f,WX,WY+.25,-6.73,room)}
+const bulb=glow(-2.3,5.78,-9.3,1.5,.8,.84,.9,room),winInGlow=glow(WX,WY,-6.9,3.6,.2,.24,.3,room);
+const roomLight=new THREE.PointLight(0xe9eef6,0,10,1.3);roomLight.position.set(-2.3,5.7,-9.3);scene.add(roomLight);
+const winIn=new THREE.PointLight(0xbfd0ee,0,9,1.2);winIn.position.set(WX,4.8,-7.3);scene.add(winIn);
+
+/* dawn, somewhere else: a small house, a tree, one lit window, and someone standing outside it */
+const DX=400,dawn=new THREE.Group();dawn.position.x=DX;scene.add(dawn);
+{const sg=new THREE.SphereGeometry(300,32,20),col=[],p=sg.attributes.position;for(let i=0;i<p.count;i++){const h=clamp01(p.getY(i)/300*2.4+.06),k=Math.pow(1-h,2.4);col.push(.045+.5*k,.06+.57*k,.085+.66*k)}sg.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+ add(sg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}),0,0,0,dawn);
+ glow(18,7,-200,150,.5,.56,.66,dawn,{fog:false});glow(18,5,-200,36,.9,.95,1,dawn,{fog:false});
+ const g=add(new THREE.PlaneGeometry(600,600),mat(0x141920,{roughness:1,flatShading:false}),0,0,0,dawn);g.rotation.x=-Math.PI/2;
+ const hill=mat(0x0e1218);for(const [x,z,sx,sy,sz] of [[-34,-70,34,8,14],[36,-90,46,11,16],[4,-120,70,15,18]]){const h=add(new THREE.IcosahedronGeometry(1,2),hill,x,0,z,dawn);h.scale.set(sx,sy,sz)}
+ const wallM=mat(0x1b2027),roofM=mat(0x0e1115);add(box(4.4,2.7,3.4),wallM,2.2,1.35,-1.5,dawn);
+ const rg=new THREE.CylinderGeometry(2.3,2.3,4.9,3);rg.rotateY(Math.PI/2);rg.rotateZ(Math.PI/2);add(rg,roofM,2.2,3.85,-1.5,dawn);add(box(.45,1.2,.45),wallM,3.4,4.6,-2.0,dawn);
+ add(new THREE.PlaneGeometry(.9,2.05),basic(.02,.024,.03),1.1,1.03,.205,dawn);add(new THREE.PlaneGeometry(1.0,1.0),basic(.8,.85,.92),3.2,1.6,.205,dawn);add(box(.04,1.0,.04),roofM,3.2,1.6,.22,dawn);add(box(1.0,.04,.04),roofM,3.2,1.6,.22,dawn);glow(3.2,1.6,.5,3.4,.36,.4,.46,dawn);
+ const tr=mat(0x0b0f13);add(new THREE.CylinderGeometry(.12,.17,2.4,7),tr,-4.6,1.2,-3,dawn);add(new THREE.IcosahedronGeometry(1.5,1),tr,-4.6,3.5,-3,dawn).scale.set(1,1.35,1);
+ add(box(1.1,.02,9),mat(0x1e242b),1.1,.012,4.8,dawn);add(box(.5,.34,.24),mat(0x23282e),.1,.17,4.5,dawn)}
+const houseLight=new THREE.PointLight(0xeef2f8,0,9,1.4);houseLight.position.set(DX+3.2,1.6,1.2);scene.add(houseLight);
+const settler=person({mat:mat(0x2a3037),plain:1});dawn.add(settler);settler.position.set(-.45,0,4.4);settler.rotation.y=Math.PI-.28;
+const sun=new THREE.DirectionalLight(0xc9d8f0,0);sun.position.set(DX+10,7,-40);sun.target.position.set(DX,1,4);scene.add(sun,sun.target);
+
+/* rain */
+const RN=small?600:1500,rp=new Float32Array(RN*6),rs=new Float32Array(RN*2),re=new Float32Array(RN*2);for(let i=0;i<RN;i++){const x=-16+Math.random()*36,y=Math.random()*11,z=-5.7+Math.random()*20,s=Math.random();rp.set([x,y,z,x,y,z],i*6);rs.set([s,s],i*2);re.set([0,1],i*2)}
+const rg=new THREE.BufferGeometry();rg.setAttribute('position',new THREE.BufferAttribute(rp,3));rg.setAttribute('aS',new THREE.BufferAttribute(rs,1));rg.setAttribute('aE',new THREE.BufferAttribute(re,1));
+const rainU={uTime:{value:0},uA:{value:1},uLen:{value:1}};
+const rain=new THREE.LineSegments(rg,new THREE.ShaderMaterial({uniforms:rainU,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+ vertexShader:'attribute float aS,aE;uniform float uTime,uLen;varying float vA;void main(){vec3 p=position;p.y=mod(p.y-uTime*(9.+aS*5.),11.)+aE*(.28+aS*.2)*uLen;p.x+=aE*.03;vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;vA=(.25+aS*.5)*smoothstep(40.,6.,-mv.z)*aE;}',
+ fragmentShader:'uniform float uA;varying float vA;void main(){gl_FragColor=vec4(vec3(.5,.57,.68)*vA*.55*uA,1.);}'}));rain.frustumCulled=false;scene.add(rain);
+
+/* ---------- the timeline: every value is a function of the scroll position, so scrolling up plays it back ---------- */
+const sm=x=>x*x*(3-2*x);
+function kf(t,k){if(t<=k[0][0])return k[0][1];for(let i=0;i<k.length-1;i++)if(t<k[i+1][0])return k[i][1]+(k[i+1][1]-k[i][1])*sm((t-k[i][0])/(k[i+1][0]-k[i][0]));return k[k.length-1][1]}
+// camera: [beat, px,py,pz, tx,ty,tz, drop]. drop lowers the aim so the subject sits in the top of the frame above the type.
+const CK=[[0,1.5,1.9,13.5, 0,3.4,-6,.02],[1,-1.6,3.0,4.6, WX,4.5,-6,.13],[2,-3.4,1.7,5.4, .2,1.5,-5.4,.15],[3,-5.8,1.7,4.4, 1.2,1.3,-3.6,.15],[4,-4.2,1.35,.2, 9,1.3,-1.9,.17],[4.35,-4.3,1.5,.6, 12,1.6,-1.9,.17],[4.7,-3.4,2.6,2.2, WX,4.4,-6,.16],[5,WX,4.75,-7.1, -2.5,4.2,-11,.17],[5.4,-1.6,4.6,-7.3, -3.9,3.9,-10.2,.17],[6,-3.5,4.5,-7.6, -1.3,4.1,-9.9,.17],
+ [7,-3.75,4.65,-10.7, WX+.3,4.75,-6.7,.16],[7.49,-3.75,4.65,-10.7, WX+.3,4.75,-6.7,.16],[7.51,DX-8,2.1,17, DX+1.5,2.9,0,.09],[8,DX-7,2.0,15, DX+1.5,2.8,0,.1],[9,DX-3.6,1.8,13, DX+.7,2.3,0,.16],[9.4,DX-2.2,2.2,11.5, DX+5,10,-60,0]];
+const CKc=[1,2,3,4,5,6,7].map(j=>CK.map(r=>[r[0],r[j]])),ck=(u,j)=>kf(u,CKc[j-1]);
+function beatAt(y){if(!P.length)return 0;if(y<=P[0].top)return P[0].beat;for(let i=0;i<P.length-1;i++)if(y<P[i+1].top)return P[i].beat+(P[i+1].beat-P[i].beat)*(y-P[i].top)/(P[i+1].top-P[i].top);return P[P.length-1].beat}
+const mouse=new THREE.Vector2(),ms=new THREE.Vector2();
+addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);kick()},{passive:true});
+addEventListener('deviceorientation',e=>{if(e.gamma==null)return;mouse.set(Math.max(-1,Math.min(1,e.gamma/25)),Math.max(-1,Math.min(1,(e.beta-45)/25)));},{passive:true});
+let uS=-1,kick=()=>{},tRest=0,creep=0,rainT=0,shown=false,fAvg=16.7,veilV=-1;const pos=new THREE.Vector3(),tgt=new THREE.Vector3(),right=new THREE.Vector3(),fwd=new THREE.Vector3(),veil=$('veil');
+function frame(time,dt){
+ const still=rm||FREEZE,t=FREEZE?0:time,uT=beatAt(scrollY);fAvg+=(dt*1000-fAvg)*.04;
+ uS=uS<0||still?uT:uS+(uT-uS)*Math.min(1,dt*4.2);if(Math.abs(uT-uS)<.0004)uS=uT; // the scene follows the page with weight: it eases in behind the snap
+ const rest=uS===uT&&!lock;tRest=rest?tRest+dt:0;
+ // the key moment, the walk to the car: while the page rests there it keeps going, in slow motion
+ const key=clamp01(1-Math.abs(uS-3)*4);creep+=((rest&&uT===3&&!still?Math.min(.17,tRest*.011):0)-creep)*Math.min(1,dt*(rest?1.2:6));
+ const u=uS,uf=u+creep,snap=still?-1:dt;rainT=FREEZE?0:rainT+dt*(1-.82*key);
+ // the window: someone is standing in it until the team goes in
+ sil.material.opacity=1-seg(uf,2.2,2.42);sil.visible=uf<2.42;
+ // the front door opens; when they have gone it closes again, and its light goes out
+ const open=sm(seg(uf,1.82,2.1))*(1-sm(seg(uf,3.5,3.9)));door.rotation.y=-open*1.25;doorIn.material.opacity=open*.9;doorLight.intensity=open*1.9;
+ // team and client
+ place(crewA,PATH.a,uf,snap);place(crewB,PATH.b,uf,snap);place(crewC,PATH.c,uf,snap);place(client,PATH.t,uf,snap);duffel.visible=uf>2.55;
+ // the car: it pulls in (headlights sweep the building), waits with its rear doors open, and leaves
+ const arr=1-Math.pow(1-seg(u,.12,.86),3),leave=seg(uf,3.6,4.8),vx=VX0-48*(1-arr)+leave*leave*70;van.position.set(vx,0,VZ);wheels.forEach(w=>w.rotation.z=-(vx-VX0)/.34);van.visible=u>.1&&vx<95;
+ const vo=sm(seg(u,.9,1.12))*(1-sm(seg(uf,3.44,3.6)));vdoors[0].rotation.y=-vo*1.9;vdoors[1].rotation.y=vo*1.9;
+ const eng=seg(uf,3.45,3.7),beam=Math.max(u<.1?0:1-seg(u,.88,1.05),eng),brake=seg(u,.55,.86)*(1-seg(u,.9,1.1)),tl=.5+eng*.9+brake*1.1;
+ tailM.color.setRGB(tl*.9,tl*.09,tl*.07);tailGlow.forEach(g=>g.scale.setScalar(.7+(eng+brake)*1.2));tailLight.intensity=.35+(eng+brake)*.9;
+ headGlow.forEach(g=>g.scale.setScalar(.4+beam*1.8));headLight.intensity=beam*3.2;
+ // the street lamp stutters and goes out after the car has gone
+ const fl=u<4.05?1:u>4.3?0:(Math.sin(u*900)>.1?1:.12)*(1-seg(u,4.05,4.3)*.6);lamp.intensity=fl;spot.intensity=2.4*fl;lampGlow.material.opacity=fl;coneU.uA.value=fl;
+ // the room: the lamp is on when we arrive; later it goes out and only the window is left
+ const inside=seg(u,4.82,4.96),out=sm(seg(u,6.45,6.9));roomLight.intensity=seg(u,4.6,4.95)*1.25*(1-.95*out);bulb.material.opacity=1-.96*out;winIn.intensity=u>4.6?.2+.75*out:0;
+ room.visible=u>4.4&&u<7.52;rain.visible=u<4.97;rainU.uTime.value=rainT;rainU.uA.value=1-inside;rainU.uLen.value=1-.55*key;
+ const l=seg(u,4.7,4.9);lit.material.color.setRGB(.62-.2*l,.68-.22*l,.78-.25*l);winGlow.material.opacity=1-inside;
+ // the cut to dawn, hidden behind a black veil at the midpoint between two pages
+ const day=u>7.5;dawn.visible=day;scene.fog.color.copy(day?fogD:fogN);scene.fog.density=day?.0095:.04;sun.intensity=day?1.15:0;hemi.intensity=day?.62:.5;houseLight.intensity=day?.9:0;
+ const vv=Math.pow(clamp01(1-Math.abs(u-7.5)/.42),.55);if(vv!==veilV){veilV=vv;veil.style.opacity=vv.toFixed(3)}
+ // tension without sound: the vignette breathes, and closes in at the key moment
+ stage.post.uniforms.uVig.value=1.15+(still?0:Math.sin(t*.9)*.045)+key*.28;
+ // camera
+ ms.x+=(mouse.x-ms.x)*Math.min(1,dt*3);ms.y+=(mouse.y-ms.y)*Math.min(1,dt*3);if(FREEZE)ms.set(0,0);
+ pos.set(ck(u,1),ck(u,2),ck(u,3));tgt.set(ck(u,4),ck(u,5),ck(u,6));const dist=pos.distanceTo(tgt),idle=still?0:Math.sin(t*.11)*.06;
+ const hero=1-seg(u,0,.6);tgt.y-=ck(u,7)*dist*(1+tall*.9)+hero*tall*dist*.22; // portrait: more of the frame belongs to the type, so the aim drops further
+ fwd.subVectors(tgt,pos).normalize();right.set(-fwd.z,0,fwd.x).normalize();
+ const par=Math.min(.35,dist*.03);pos.addScaledVector(right,ms.x*par+idle);pos.y+=ms.y*par*.5;
+ if(tall&&(u<4.75||u>7.5))pos.addScaledVector(fwd,-dist*.16*tall); // portrait: step back a little so the subject is not cropped
+ if(!still)pos.addScaledVector(fwd,dist*.055*sm(Math.min(1,tRest/10))); // a slow push-in while the page rests
+ cam.position.copy(pos);cam.lookAt(tgt);
+ stage.render(scene,cam,FREEZE?0:time);
+ if(!shown){shown=true;document.body.classList.add('ready')}
+}
+build();{const h=location.hash&&document.querySelector(location.hash);const i=h?firstIn(h):0;idx=Math.max(0,i);mark();scrollTo(0,P[idx].top)}
+stage.resize();R.compile(scene,cam); // compile every shader during the first paint, so nothing hitches on the first page turn
+kick=loop(stage,frame);
+window.__v16={ready:true,get fps(){return 1000/fAvg},get dpr(){return stage.dpr()},pages:()=>P.map(p=>({top:p.top,beat:p.beat,id:p.el.id||p.el.closest('.page').id})),get index(){return idx},get locked(){return lock},go};
+})();
+</script>
+</body>
+</html>
