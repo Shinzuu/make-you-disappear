@@ -57,8 +57,9 @@ function createStage(canvas, { tint = [1, 1, 1], ca = 1.0, grain = 0.08, vignett
 
 /* scroll progress */
 const scroll = { p: 0, s: 0, v: 0 };
-function readScroll() { const H = document.documentElement.scrollHeight - innerHeight; scroll.p = H > 0 ? Math.min(1, Math.max(0, scrollY / H)) : 0; }
-addEventListener('scroll', readScroll, { passive: true }); readScroll();
+let scrollH = 0; const measureScroll = () => { scrollH = document.documentElement.scrollHeight - innerHeight; }; // measured on load and resize only: reading it on every scroll event forced a layout
+function readScroll() { scroll.p = scrollH > 0 ? Math.min(1, Math.max(0, scrollY / scrollH)) : 0; }
+addEventListener('scroll', readScroll, { passive: true }); addEventListener('resize', measureScroll); addEventListener('load', measureScroll); measureScroll(); readScroll();
 // progress of an element through the viewport: 0 when its top hits the bottom, 1 when its bottom leaves the top
 function inView(el) { const r = el.getBoundingClientRect(); return Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight + r.height))); }
 const clamp01 = x => Math.min(1, Math.max(0, x));
