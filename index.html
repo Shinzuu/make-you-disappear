@@ -3,11 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
+<script>
+/* Load guard. (1) No WebGL: show the page as plain scrolling sections. (2) On vercel.app only: if the 3D scene's critical files
+   fail or are not up within 5 s, send the viewer once to the backup copy on Cloudflare Pages (same path + hash). Never runs on pages.dev. */
+(function(){
+var d=document,h=d.documentElement,L=window.__lethe={mod:0,fonts:0,models:0,failed:0,why:''};
+var BACKUP='https://make-you-disappear.pages.dev',onV=/(^|\.)vercel\.app$/.test(location.host),moved=0;
+function plain(w){if(!L.why)L.why=w;h.classList.add('nogl')}
+try{var c=d.createElement('canvas'),g=c.getContext('webgl2')||c.getContext('webgl');if(!g)plain('no-webgl');else{var x=g.getExtension('WEBGL_lose_context');if(x)x.loseContext()}}catch(e){plain('no-webgl')}
+function go(why){
+  if(moved||!onV||h.classList.contains('nogl'))return;
+  var seen=0;try{seen=sessionStorage.getItem('lethe-backup')}catch(e){}
+  if(seen){plain('backup-already-tried:'+why);return}
+  moved=1;try{sessionStorage.setItem('lethe-backup','1')}catch(e){}
+  var n=d.createElement('div');n.id='lethe-note';n.textContent='Loading the backup copy…';
+  n.style.cssText='position:fixed;left:0;right:0;bottom:24px;z-index:99;text-align:center;font:500 13px/1.5 ui-monospace,monospace;letter-spacing:.1em;color:#eef0f2;pointer-events:none';
+  (d.body||h).appendChild(n);
+  setTimeout(function(){location.replace(BACKUP+location.pathname+location.search+location.hash)},900);
+}
+function fail(w){L.failed=1;L.why=L.why||w;go(w)}
+L.fail=fail;
+/* critical = our own scripts, models, textures-as-files, fonts. Anything that errors or answers 4xx/5xx trips the guard. */
+var crit=function(u){try{var a=new URL(u,location.href);return a.origin===location.origin&&/\/(models|vendor)\/|\/r4\.js$/.test(a.pathname)}catch(e){return false}};
+var F=window.fetch;
+if(F)window.fetch=function(i,o){var u=typeof i==='string'?i:(i&&i.url)||'',k=crit(u);
+  var p=F.apply(this,arguments);
+  if(k)p.then(function(r){if(!r.ok)fail('http-'+r.status+' '+u);else if(/\/models\//.test(u))L.models++},function(){fail('fetch '+u)});
+  return p};
+addEventListener('error',function(e){var t=e.target;if(t&&t!==window&&(t.src||t.href)&&crit(t.src||t.href))fail('resource '+(t.src||t.href))},true);
+if(d.fonts&&d.fonts.addEventListener)d.fonts.addEventListener('loadingerror',function(){fail('font')});
+if(d.fonts&&d.fonts.load)d.fonts.load('400 18px "Inter"').then(function(){L.fonts=1},function(){fail('font')});
+/* the module reports in (window.__lethe.mod=1) once three.js and its add-ons have loaded */
+addEventListener('error',function(e){if(!t(e))return;if(!L.mod)fail('script '+(e.message||''));else plain('script-error')});
+function t(e){return !e.target||e.target===window}
+setTimeout(function(){if(!L.mod||!L.fonts||!L.models)fail('slow mod='+L.mod+' fonts='+L.fonts+' models='+L.models)},5000);
+})();
+</script>
 <title>LETHE · Private Relocation</title>
 <meta name="description" content="Lethe. A discreet fresh-start and relocation service. Placeholder brand, class exercise.">
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/loaders/GLTFLoader.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/loaders/RGBELoader.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/postprocessing/EffectComposer.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/postprocessing/UnrealBloomPass.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/libs/meshopt_decoder.module.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/utils/BufferGeometryUtils.js"><link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/utils/SkeletonUtils.js"><link rel="preload" as="script" href="r4.js"><link rel="preload" as="image" href="media/poster-l.webp" media="(min-aspect-ratio:1/1)"><link rel="preload" as="image" href="media/poster-p.webp" media="(max-aspect-ratio:1/1)">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter+Tight:ital,wght@0,300;0,400;1,400&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter+Tight:wght@300;400&display=swap" rel="stylesheet"></noscript>
+<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js"><link rel="modulepreload" href="vendor/three/examples/jsm/loaders/RGBELoader.js"><link rel="modulepreload" href="vendor/three/examples/jsm/postprocessing/EffectComposer.js"><link rel="modulepreload" href="vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js"><link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js"><link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js"><link rel="modulepreload" href="vendor/three/examples/jsm/utils/SkeletonUtils.js"><link rel="preload" as="script" href="r4.js"><link rel="preload" as="image" href="media/poster-l.webp" media="(min-aspect-ratio:1/1)"><link rel="preload" as="image" href="media/poster-p.webp" media="(max-aspect-ratio:1/1)">
+<link rel="preload" href="vendor/fonts/Inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
 <style>
 /* VOSS palette: near-black, graphite, cold white. One thin accent: red. 8 pt grid. Every section is one snap page. */
 :root{--bg:#060708;--panel:rgba(10,12,14,.93);--ink:#eef0f2;--body:#d6dae0;--mute:#b4bac2;--line:rgba(238,240,242,.14);--line2:rgba(238,240,242,.28);--acc:#c2332b;--sans:"Inter Tight",system-ui,sans-serif;--text:"Inter",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;--ease:cubic-bezier(.65,0,.35,1);--pad:64px;--top:104px;--bot:72px}
@@ -16,6 +53,13 @@ html{overflow:hidden;overscroll-behavior:none}
 body{background:transparent;color:var(--body);font:400 18px/1.65 var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 /* a still of the first scene is on screen with the first paint; the live scene fades in over it */
 html{background:#060708}
+/* no WebGL, or the scene could not start: plain scrolling sections over the still */
+html.nogl,html.nogl body{overflow:auto;height:auto}
+.nogl .page{height:auto;min-height:100vh;overflow:visible;justify-content:center}
+.nogl .page::before{background:rgba(6,7,8,.88)}
+.nogl .fade{opacity:1!important;transform:none!important}
+.nogl .depth,.nogl .count,.nogl #cases,.nogl .links a[href="#cases"]{display:none}
+.nogl #poster{display:block!important}
 #poster{position:fixed;inset:0;z-index:0;background:#060708 url(media/poster-l.webp) center/cover no-repeat;pointer-events:none}
 @media (max-aspect-ratio:1/1){#poster{background-image:url(media/poster-p.webp)}}
 #gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;pointer-events:none;opacity:0;transition:opacity 1.2s ease-out}
@@ -411,9 +455,8 @@ nav{position:fixed;top:16px;left:0;right:0;z-index:20;display:flex;justify-conte
 </main>
 <div class="toast" id="toast" role="status"></div>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/"}}</script>
 <script src="r4.js" defer></script>
-<script type="module">
+<script type="module" onerror="__lethe.fail('module')">
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
@@ -424,6 +467,7 @@ import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import {mergeBufferGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+window.__lethe.mod=1;
 (function(){
 const {rm,small:narrow,seg,clamp01,loop,refs,toast,NOISE}=R4;
 const FREEZE=/[?&]freeze/.test(location.search); // test mode: no idle motion, no rain motion, no grain
