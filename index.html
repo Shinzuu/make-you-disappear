@@ -13,7 +13,8 @@ var BACKUP='https://make-you-disappear.pages.dev',onV=/(^|\.)vercel\.app$/.test(
 function plain(w){if(!L.why)L.why=w;h.classList.add('nogl')}
 try{var c=d.createElement('canvas'),g=c.getContext('webgl2')||c.getContext('webgl');if(!g)plain('no-webgl');else{var x=g.getExtension('WEBGL_lose_context');if(x)x.loseContext()}}catch(e){plain('no-webgl')}
 function go(why){
-  if(moved||!onV||h.classList.contains('nogl'))return;
+  if(moved||h.classList.contains('nogl'))return;
+  if(!onV){plain('failed:'+why);return}
   var seen=0;try{seen=sessionStorage.getItem('lethe-backup')}catch(e){}
   if(seen){plain('backup-already-tried:'+why);return}
   moved=1;try{sessionStorage.setItem('lethe-backup','1')}catch(e){}
